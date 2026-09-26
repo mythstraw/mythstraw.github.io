@@ -1,0 +1,68 @@
+# 中文界面文案（站点默认语言）
+# 模板里用法：{{ T "key" }} 或 {{ T "key" (dict "name" 值) }}
+
+[nav_home]
+other = "首页"
+
+[nav_blog]
+other = "文章"
+
+[search_placeholder]
+other = "搜索文章标题…"
+
+[filtering_for]
+other = '标签筛选：「{{ .title }}」'
+
+[remove_filter]
+other = "清除筛选"
+
+[post_count]
+other = "共 {{ .n }} 篇文章"
+
+[no_posts]
+other = "还没有文章"
+
+[lang_switch_title]
+other = "切换语言"
+
+[theme_mode_auto]
+other = "跟随系统"
+
+[theme_mode_light]
+other = "浅色"
+
+[theme_mode_dark]
+other = "深色"
+
+[theme_toggle_hint]
+other = "，点击切换"
+
+[footer_rss_and_email]
+other = '订阅 <a href="{{ .rss }}">RSS</a>，或者<a href="mailto:{{ .email }}">写信给我</a>。'
+
+[footer_rss_only]
+other = '订阅 <a href="{{ .rss }}">RSS</a>。'
+
+[footer_email_only]
+other = '通过 <a href="mailto:{{ .email }}">邮件</a>联系我。'
+
+[footer_made_with]
+other = '由 <a href="https://github.com/rokcso/hugo-bearneo/">Hugo Bear Neo</a> 驱动。'
+
+[footer_sitemap]
+other = '🗺️ <a href="{{ .url }}">站点地图</a>'
+
+[not_found_text]
+other = "这页好像不存在了。"
+
+[back_home]
+other = "返回首页"
+
+[rss_description_all]
+other = "{{ .site }} 的最新内容"
+
+[rss_description_section]
+other = "{{ .site }} 中「{{ .section }}」的最新内容"
+
+[rss_channel_title]
+other = "{{ .section }} | {{ .site }}"

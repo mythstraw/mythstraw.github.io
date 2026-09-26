@@ -1,0 +1,75 @@
+{{/*
+  站点级覆盖：theme 的 layouts/partials/custom_head.html
+  改动：
+    1) 在 <head> 里就把 localStorage 的明暗模式写到 <html>，避免刷新时闪白/闪黑；
+    2) 主题只有 prefers-color-scheme 自动模式，这里补上「手动锁定浅色/深色」的 CSS 变量覆盖；
+    3) 明暗切换按钮的样式。
+  注意：本文件在主题 style.html 之后引入，所以覆盖优先级正确，无需改动主题源码。
+*/}}
+<script>
+  (function () {
+    var mode = 'auto';
+    try { mode = localStorage.getItem('theme-mode') || 'auto'; } catch (e) { }
+    if (mode !== 'light' && mode !== 'dark') { mode = 'auto'; }
+    var root = document.documentElement;
+    root.setAttribute('data-theme-mode', mode);
+    if (mode !== 'auto') { root.setAttribute('data-theme', mode); }
+  })();
+</script>
+<style>
+  /* 默认交给浏览器（跟随系统） */
+  html {
+    color-scheme: light dark;
+  }
+
+  /* 手动锁定浅色：与主题 :root 的浅色变量一致，但优先级更高，可压过系统深色偏好 */
+  html[data-theme="light"] {
+    color-scheme: light;
+    --bg-color-primary: #fdfdfd;
+    --bg-color-secondary: #f2f4f7;
+    --text-color-primary: #1a1a1a;
+    --text-color-secondary: #444;
+    --text-color-tertiary: #8c8c8c;
+    --link-color: #0066cc;
+    --link-visited-color: #551a8b;
+    --border-color: #d0d7de;
+    --upvoted-color: #fa8072;
+  }
+
+  /* 手动锁定深色：与主题 @media (prefers-color-scheme: dark) 里的变量一致 */
+  html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg-color-primary: #121212;
+    --bg-color-secondary: #1c1f24;
+    --text-color-primary: #e5e5e5;
+    --text-color-secondary: #b3b3b7;
+    --text-color-tertiary: #a0a0a0;
+    --link-color: #6da6ff;
+    --link-visited-color: #b388ff;
+    --border-color: #30363d;
+    --upvoted-color: #ff6b6b;
+  }
+
+  /* 导航里的明暗切换按钮 */
+  button.theme-toggle {
+    margin: 0 8px 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: var(--link-color);
+    cursor: pointer;
+  }
+
+  button.theme-toggle:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 导航里的语言切换 */
+  span.nav-lang a {
+    margin-right: 8px;
+  }
+</style>

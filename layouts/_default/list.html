@@ -1,0 +1,112 @@
+{{/*
+  站点级覆盖：theme 的 layouts/_default/list.html
+  改动：
+    1) 写死的英文文案（Search... / There is N piece. / No posts yet / Filtering for / Remove filter）走 i18n；
+    2) 搜索结果条数用翻译模板 + 占位符 __N__，中英文都能正确显示；
+    3) 条数改用 textContent 写入，避免 innerHTML。
+*/}}
+{{ define "main" }}
+<content>
+  {{ if .Data.Singular }}
+  <h3 style="margin-bottom:0">{{ T "filtering_for" (dict "title" .Title) }}</h3>
+  <small>
+    <a href="{{ with .Site.GetPage "/blog" }}{{ .RelPermalink }}{{ else }}{{ .Site.Home.RelPermalink }}{{ end }}">{{ T "remove_filter" }}</a>
+  </small>
+  {{ end }}
+  {{ if .Site.Params.postSearch }}
+  <input id="search-input" type="text" placeholder="{{ T "search_placeholder" }}" style="margin-top: 16px" />
+  <script>
+    // 等待 DOM 完全加载后执行
+    document.addEventListener('DOMContentLoaded', function () {
+      // 缓存 DOM 元素
+      const searchInput = document.getElementById('search-input');
+      const posts = document.querySelectorAll('.blog-posts li');
+      const years = document.querySelectorAll('.blog-posts h3');
+      const postCountTpl = {{ T "post_count" (dict "n" "__N__") | jsonify | safeJS }};
+
+      // 更新搜索结果
+      function updateSearchResults(searchTerm) {
+        let visiblePosts = 0;
+        const displayedYears = new Set();
+        posts.forEach(function (post) {
+          const link = post.querySelector('a');
+          const time = post.querySelector('time');
+          if (!link || !time) return;
+          const title = link.textContent.toLowerCase();
+          const year = time.getAttribute('datetime').split('-')[0];
+          if (title.includes(searchTerm)) {
+            post.style.display = '';
+            visiblePosts++;
+            displayedYears.add(year);
+          } else {
+            post.style.display = 'none';
+          }
+        });
+
+        {{ if .Site.Params.groupByYear }}
+        years.forEach(function (y) {
+          const year = y.textContent;
+          y.style.display = displayedYears.has(year) ? '' : 'none';
+        });
+        {{ end }}
+
+        {{ if .Site.Params.showPostCount }}
+        const countEl = document.getElementById('post-count');
+        if (countEl) countEl.textContent = postCountTpl.replace('__N__', visiblePosts);
+        {{ end }}
+      }
+
+      searchInput.addEventListener('input', function () {
+        updateSearchResults(this.value.toLowerCase().trim());
+      });
+    });
+  </script>
+  {{ end }}
+  {{ if .Site.Params.showPostCount }}
+  {{ $visiblePages := where .Pages "Params.hidden" "!=" true }}
+  <p id="post-count">{{ T "post_count" (dict "n" (len $visiblePages)) }}</p>
+  {{ end }}
+  <ul class="blog-posts">
+    {{ $currentYear := 0 }}
+    {{ range .Pages }}
+    {{ if not .Params.hidden }}
+    {{ if .Site.Params.groupByYear }}
+    {{ $year := .Date.Year }}
+    {{ if ne $year $currentYear }}
+    <h3>{{ $year }}</h3>
+    {{ $currentYear = $year }}
+    {{ end }}
+    {{ end }}
+    <li>
+      <span class="{{ if .Site.Params.groupByYear }} grouped {{ else }} ungrouped {{ end }}">
+        <i>
+          <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+            {{ if .Site.Params.groupByYear }}
+            {{ .Date.Format (default "02 Jan." .Site.Params.dateFormat) }}
+            {{ else }}
+            {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
+            {{ end }}
+          </time>
+        </i>
+      </span>
+      <a href="{{ .Permalink }}">{{ .Title }}</a>
+    </li>
+    {{ end }}
+    {{ else }}
+    <li>
+      {{ T "no_posts" }}
+    </li>
+    {{ end }}
+  </ul>
+  {{ if .Data.Singular }}
+  {{else}}
+  <small>
+    <div>
+      {{ range .Site.Taxonomies.tags }}
+      <a href="{{ .Page.Permalink }}">#{{ .Page.Title }}</a>&nbsp;
+      {{ end }}
+    </div>
+  </small>
+  {{ end }}
+</content>
+{{ end }}

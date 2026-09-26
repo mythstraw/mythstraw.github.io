@@ -1,0 +1,76 @@
+{{/*
+  站点级覆盖：theme 的 layouts/partials/nav.html
+  改动：
+    1) 导航文案走 i18n（首页 / 文章），不再是写死的 Home / Blog；
+    2) 内部链接改用 .RelPermalink，多语言下指向当前语言的页面（主题用 relURL，英文站会跳回中文）；
+    3) 末尾追加「语言切换」与「明暗模式切换」。
+*/}}
+<a href="{{ .Site.Home.RelPermalink }}">{{ T "nav_home" }}</a>
+{{ $newTabEnabled := .Site.Params.externalLinksNewTab | default false }}
+{{ range .Site.Menus.main }}
+{{ $isExternal := or (hasPrefix .URL "http://") (hasPrefix .URL "https://") }}
+{{ if and $isExternal $newTabEnabled }}
+<a href="{{ .URL }}" target="_blank" rel="noopener noreferrer">{{ .Name }}</a>
+{{ else }}
+<a href="{{ .URL }}">{{ .Name }}</a>
+{{ end }}
+{{ end }}
+{{ with .Site.GetPage "/blog" }}
+<a href="{{ .RelPermalink }}">{{ T "nav_blog" }}</a>
+{{ end }}
+{{ if gt (len .Site.Languages) 1 }}
+{{ $alts := .AllTranslations }}
+{{ if le (len $alts) 1 }}{{ $alts = .Site.Home.AllTranslations }}{{ end }}
+<span class="nav-lang">
+  {{- range $alts }}{{ if ne .Lang $.Site.Language.Lang }}
+  <a href="{{ .RelPermalink }}" hreflang="{{ .Lang }}" lang="{{ .Lang }}" title="{{ T "lang_switch_title" }}">{{ .Language.LanguageName }}</a>
+  {{ end }}{{ end -}}
+</span>
+{{ end }}
+<span class="nav-theme">
+  <button id="theme-toggle" class="theme-toggle" type="button" aria-label="{{ T "theme_mode_auto" }}">
+    <span id="theme-toggle-icon" aria-hidden="true">🌗</span>
+  </button>
+</span>
+<script>
+  (function () {
+    var MODES = ['auto', 'light', 'dark'];
+    var ICONS = { auto: '🌗', light: '☀️', dark: '🌙' };
+    var LABELS = {
+      auto: {{ T "theme_mode_auto" | jsonify | safeJS }},
+      light: {{ T "theme_mode_light" | jsonify | safeJS }},
+      dark: {{ T "theme_mode_dark" | jsonify | safeJS }}
+    };
+    var HINT = {{ T "theme_toggle_hint" | jsonify | safeJS }};
+
+    var root = document.documentElement;
+    var btn = document.getElementById('theme-toggle');
+    var icon = document.getElementById('theme-toggle-icon');
+    var mode = 'auto';
+    try { mode = localStorage.getItem('theme-mode') || 'auto'; } catch (e) { }
+    if (MODES.indexOf(mode) === -1) { mode = 'auto'; }
+
+    function render() {
+      if (mode === 'auto') {
+        root.removeAttribute('data-theme');
+      } else {
+        root.setAttribute('data-theme', mode);
+      }
+      root.setAttribute('data-theme-mode', mode);
+      if (icon) { icon.textContent = ICONS[mode]; }
+      if (btn) {
+        btn.title = LABELS[mode] + HINT;
+        btn.setAttribute('aria-label', LABELS[mode] + HINT);
+      }
+    }
+
+    if (btn) {
+      btn.addEventListener('click', function () {
+        mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+        try { localStorage.setItem('theme-mode', mode); } catch (e) { }
+        render();
+      });
+    }
+    render();
+  })();
+</script>

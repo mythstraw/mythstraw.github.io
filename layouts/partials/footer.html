@@ -1,0 +1,34 @@
+{{/*
+  站点级覆盖：theme 的 layouts/partials/footer.html
+  改动：
+    1) 页脚文案走 i18n，默认显示中文；
+    2) RSS / 站点地图链接改为当前语言的地址（英文站指向 /en/index.xml、/en/sitemap.xml）。
+*/}}
+{{ if ne .Site.Params.Footer.hideRSSAndEmail true }}
+{{ $rssEnabled := ne .Site.Params.RSS.enableRSS false }}
+{{ $rssURL := "" }}
+{{ with .Site.Home.OutputFormats.Get "rss" }}{{ $rssURL = .RelPermalink }}{{ end }}
+{{ $email := .Site.Params.Author.email }}
+{{/* 翻译串里含 <a> 标签，所以过一遍 safeHTML（传入的只有自家生成的 URL 和配置里的邮箱） */}}
+{{ if and $rssEnabled $email }}
+{{ T "footer_rss_and_email" (dict "rss" $rssURL "email" $email) | safeHTML }}
+<br />
+{{ else if $rssEnabled }}
+{{ T "footer_rss_only" (dict "rss" $rssURL) | safeHTML }}
+<br />
+{{ else if $email }}
+{{ T "footer_email_only" (dict "email" $email) | safeHTML }}
+<br />
+{{ end }}
+{{ end }}
+
+{{ if ne .Site.Params.Footer.hideMadeWithLine true }}{{ T "footer_made_with" | safeHTML }}
+<br />
+{{ end }}
+
+{{ if ne .Site.Params.Footer.hideCopyright true }}
+{{ .Site.Params.copyright }}
+{{ end }}
+{{ if ne .Site.Params.Footer.hideSitemap true }}
+{{ T "footer_sitemap" (dict "url" ("sitemap.xml" | relLangURL)) | safeHTML }}
+{{ end }}

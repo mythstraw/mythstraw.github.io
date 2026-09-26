@@ -5,8 +5,27 @@ theme: "hugo-bearneo"
 
 # 站点名称（同时用于生成的 HTML 元数据）
 title: "[ForeverYang's Blogs]"
-# 首选语言
-languageCode: "zh-cn"
+
+# ---- 多语言 ----
+# 默认中文，且不带路径前缀（原有链接全部不变）；英文站挂在 /en/ 下。
+# 界面文案在 i18n/zh-cn.toml 与 i18n/en.toml；
+# 某篇文章要出英文版，就在同目录放一个同名的 xxx.en.md。
+# 不需要英文站：删掉 languages.en 这一段、content/_index.en.md、content/blog/_index.en.md 即可。
+defaultContentLanguage: "zh-cn"
+defaultContentLanguageInSubdir: false
+languages:
+  zh-cn:
+    languageName: "中文"
+    languageCode: "zh-cn"
+    weight: 1
+    params:
+      description: "ForeverYang 的个人博客：记录知识管理、AI 工具链、读书与日常折腾。"
+  en:
+    languageName: "English"
+    languageCode: "en-US"
+    weight: 2
+    params:
+      description: "ForeverYang's personal blog: notes on knowledge management, AI tooling, reading, and tinkering."
 
 # 生成 robots.txt（利于 SEO）
 enableRobotsTXT: true

@@ -1,0 +1,11 @@
+{{/*
+  站点级覆盖：theme 的 layouts/404.html
+  改动：文案走 i18n，并加一个回首页的链接（默认中文显示）。
+*/}}
+{{ define "title" }}404{{ end }}
+
+{{ define "main" }}
+<h1>404</h1>
+<h2>ʕノ•ᴥ•ʔノ ︵ ┻━┻</h2>
+<p>{{ T "not_found_text" }} <a href="{{ .Site.Home.RelPermalink }}">{{ T "back_home" }}</a></p>
+{{ end }}
