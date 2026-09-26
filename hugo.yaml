@@ -1,0 +1,72 @@
+# 站点基础配置
+# Site configuration. Docs: https://gohugo.io/getting-started/configuration/
+baseURL: "https://mythstraw.github.io/"
+theme: "hugo-bearneo"
+
+# 站点名称（同时用于生成的 HTML 元数据）
+title: "[ForeverYang's Blogs]"
+# 首选语言
+languageCode: "zh-cn"
+
+# 生成 robots.txt（利于 SEO）
+enableRobotsTXT: true
+
+# Bear Blog 风格的干净 URL：不生成 taxonomy 列表页
+disableKinds: ["taxonomy"]
+ignoreErrors: ["error-disable-taxonomy"]
+
+# 生成的 URL 结构
+permalinks:
+  blog: "/p/:slug"
+  tags: "/blog/:slug"
+
+params:
+  # 用于 Hugo 内置 opengraph 模板的 site_name
+  title: "[ForeverYang's Blogs]"
+  # 站点描述（出现在搜索引擎结果与社交分享）
+  description: "ForeverYang 的个人博客：记录知识管理、AI 工具链、读书与日常折腾。"
+  # favicon（静态文件相对路径，至少 32x32 的方形 png）
+  favicon: "img/favicon.png"
+  # 自定义日期格式（Go layout 语法），默认是 "02 Jan, 2006"
+  dateFormat: "2006-01-02"
+  # 版权文案，用于 RSS 和页脚
+  copyright: "Copyright © 2026, ForeverYang"
+
+  # 文章列表按年份分组
+  groupByYear: true
+  # 文章列表显示文章数量
+  showPostCount: true
+  # 文章列表页启用搜索框
+  postSearch: true
+  # 文章页启用目录
+  toc: true
+  # 文章页启用图片点击放大
+  imageZoom: true
+  # 外部链接在新标签页打开
+  externalLinksNewTab: true
+
+  # 点赞（Bear Blog 风格，需自建 Kudos 后端；未部署保持 false）
+  upvote: false
+
+  footer:
+    hideCopyright: false
+    hideSitemap: false
+    # 主题作者请求尽量保留这行致谢；不想显示可改为 true
+    hideMadeWithLine: false
+    # true 时隐藏页脚的 RSS / 邮件链接
+    hideRSSAndEmail: false
+
+  RSS:
+    enableRSS: true
+    pageLimit: 10
+
+  author:
+    name: "ForeverYang"
+    # 填上邮箱后，页脚会多出 "say hello" 邮件链接（会公开显示）
+    # email: "mythstraw@msn.com"
+
+markup:
+  # 目录只渲染 h2 ~ h3
+  tableOfContents:
+    startLevel: 2
+    endLevel: 3
