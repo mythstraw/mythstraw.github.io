@@ -1,6 +1,7 @@
 ---
-# 首页的 og:title（社交分享时显示的标题）
-title: "[ForeverYang's Blogs]"
+# 这里故意不写 title。
+# 主题模板会把「页面标题 | 站点标题」拼起来，首页两者相同会让 <title> 重复；
+# 留空后首页标题直接取站点名（og:title 同样回落到站点名）。
 ---
 
 # 嗨，我是 ForeverYang 👋
