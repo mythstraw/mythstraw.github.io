@@ -9,7 +9,9 @@
         生成，深色那份已按 html[data-theme="dark"] / 自动模式作用域包好），
         并给代码块加上底色与细边框；
      6) 首页（.IsHome）额外引入 assets/css/home.css（每日一句 / 最新文章 / 分类入口）；
-      7) 站点标题独占一行并靠右显示（同一行最左侧是明暗切换按钮），导航在它下面那行同样靠右。
+      7) 站点标题独占一行并靠右显示（同一行最左侧是明暗切换按钮），导航在它下面那行同样靠右；
+      8) <nav> 宽度收紧成「内容宽度」（否则量到的是整行宽），博客列表页的搜索框靠右、
+         宽度与导航整排一致（宽度由 list.html 的 JS 量出来写进 --search-width）。
 注意：本文件在主题 style.html 之后引入，所以覆盖优先级正确，无需改动主题源码。
 */}}
 <script>
@@ -114,12 +116,41 @@
     column-gap: 12px;
   }
 
-  /* 导航排成一行并整体靠右（与上一行靠右的站点标题对齐）。 */
+  /* 导航排成一行并整体靠右（与上一行靠右的站点标题对齐）。
+     width: fit-content + margin-left: auto：让 <nav> 自身的宽度就等于整排链接的宽度
+     （默认 <nav> 是占满一行的块级元素，量出来的宽度会等于页面宽度）。
+     列表页的搜索框就是拿导航的宽度对齐的，见下面 div.post-search-row。 */
   header nav {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: flex-end;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+  }
+
+  /* 链接间距从「右侧 8px」改成「左侧 8px」（主题原值见 themes/hugo-bearneo/layouts/partials/style.html
+     的 nav a）：这样整排文字的最右边与容器右边缘严格对齐，
+     搜索框右边缘也就和导航文字对齐，不会差一个间距。 */
+  header nav a {
+    margin-right: 0;
+    margin-left: 8px;
+  }
+
+  /* 博客列表页（layouts/_default/list.html）的搜索框：
+     整块靠右，宽度 = 顶部导航整排的宽度 —— 宽度由 list.html 的 JS 量好写进
+     --search-width；没跑 JS 时用 220px 回退。窄屏时 max-width 兜底，不会溢出。 */
+  div.post-search-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+
+  div.post-search-row input#search-input {
+    box-sizing: border-box;
+    width: var(--search-width, 220px);
+    max-width: 100%;
   }
 
   /* 标题行里的按钮：不参与拉伸，宽度跟着内容走 */

@@ -3,8 +3,11 @@
   改动：
     1) 写死的英文文案（Search... / There is N piece. / No posts yet / Filtering for / Remove filter）走 i18n；
     2) 搜索结果条数用翻译模板 + 占位符 __N__，中英文都能正确显示；
-    3) 条数改用 textContent 写入，避免 innerHTML。
-*/}}
+     3) 条数改用 textContent 写入，避免 innerHTML；
+     4) 搜索框整块靠右，宽度 = 顶部导航整排的宽度：宽度由下面的 JS 量出来
+        写进 CSS 变量 --search-width（样式在 partials/custom_head.html），
+        所以搜索框的右边缘与导航文字对齐、宽度也与它一致。
+ */}}
 {{ define "main" }}
 <content>
   {{ if .Data.Singular }}
@@ -14,7 +17,10 @@
   </small>
   {{ end }}
   {{ if .Site.Params.postSearch }}
-  <input id="search-input" type="text" placeholder="{{ T "search_placeholder" }}" style="margin-top: 16px" />
+  {{/* 搜索框：外层 div 负责「整块靠右」，宽度由下面 JS 量出导航宽度后写进 --search-width */}}
+  <div class="post-search-row">
+    <input id="search-input" type="text" placeholder="{{ T "search_placeholder" }}" />
+  </div>
   <script>
     // 等待 DOM 完全加载后执行
     document.addEventListener('DOMContentLoaded', function () {
@@ -23,6 +29,32 @@
       const posts = document.querySelectorAll('.blog-posts li');
       const years = document.querySelectorAll('.blog-posts h3');
       const postCountTpl = {{ T "post_count" (dict "n" "__N__") | jsonify | safeJS }};
+
+      // 搜索框宽度 = 顶部导航整排的宽度（从第一个链接的左边缘量到最后一个链接的右边缘），
+      // 量出来写进 CSS 变量，样式在 partials/custom_head.html 的 div.post-search-row。
+      // 拿不到导航（或导航在窄屏上换行占满一行）时清空变量，由 CSS 的回退宽度兜底。
+      (function syncSearchWidth() {
+        const searchRow = document.querySelector('.post-search-row');
+        const navEl = document.querySelector('header nav');
+        if (!searchRow || !navEl) return;
+
+        function apply() {
+          const links = navEl.querySelectorAll('a');
+          let width = 0;
+          if (links.length) {
+            const first = links[0].getBoundingClientRect();
+            const last = links[links.length - 1].getBoundingClientRect();
+            width = Math.round(last.right - first.left);
+          }
+          // 窄屏上导航换行时上面量出来会偏宽，用导航自身宽度封顶（此时两边都是整行宽）
+          const navBoxWidth = Math.round(navEl.getBoundingClientRect().width);
+          if (navBoxWidth > 0) width = Math.min(width, navBoxWidth);
+          searchRow.style.setProperty('--search-width', width > 80 ? width + 'px' : '');
+        }
+
+        apply();
+        window.addEventListener('resize', apply);
+      })();
 
       // 更新搜索结果
       function updateSearchResults(searchTerm) {

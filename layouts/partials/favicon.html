@@ -1,0 +1,12 @@
+{{- /* 站点级覆盖：主题 layouts/partials/favicon.html
+       目的：给 favicon 的 URL 加版本查询串，浏览器 favicon 缓存极顽固，
+       不换 URL 时即使强刷也可能仍显示旧图标。
+       换图标流程：替换 static/img/favicon.png → 把 hugo.yaml 里
+       params.faviconVersion 的值加 1 → 提交推送。 */ -}}
+{{- with .Site.Params.favicon }}
+{{- $v := $.Site.Params.faviconVersion | default "1" }}
+{{- $href := printf "%s?v=%s" . $v }}
+<link rel="shortcut icon" href="{{ $href | absURL }}" />
+<link rel="icon" type="image/png" href="{{ $href | absURL }}" />
+<link rel="apple-touch-icon" href="{{ $href | absURL }}" />
+{{- end }}

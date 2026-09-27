@@ -48,6 +48,17 @@ h2.home-h2 {
   font-size: 1.05em;
 }
 
+/* 小标题前的装饰图标：用 CSS 生成（不在正文文本里），复制文字时不会带上；
+   想换图标只改下面两行的 content，想去掉图标就整段删掉。
+   图标用系统彩色 emoji 字体渲染，不额外加载任何图片。 */
+h2.home-h2-posts::before {
+  content: "📰 ";
+}
+
+h2.home-h2-topics::before {
+  content: "🏷️ ";
+}
+
 /* ---------- 最新文章（普通无序列表：只列标题，不带日期） ---------- */
 ul.home-posts {
   list-style-type: disc;

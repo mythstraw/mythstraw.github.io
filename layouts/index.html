@@ -7,7 +7,9 @@
         纯静态站点不会自己每天重构，所以真正的「每天不一样」是前端完成的
         （Hugo 与 JS 用同一套算法，日期相同就不会闪）。
       2) 最新文章：blog 区最新的 5 篇，普通无序列表（只列标题，不带日期，也没有「全部文章」入口）。
-     3) 分类入口：标签云，点进去就是该标签的文章列表。
+       3) 分类入口：标签云，点进去就是该标签的文章列表。
+    两个小标题前的小图标不在这个文件里 —— 它们是 CSS 装饰（::before）：
+    想换图标 / 去掉图标，改 assets/css/home.css 里的 h2.home-h2-posts 与 h2.home-h2-topics。
    名句库 data/quotes.yaml（单独一份文档，顺序即轮换顺序；想通读全表看 /quotes/ 页面）；
    首页样式 assets/css/home.css；文案 i18n/zh-cn.toml。
 */}}
@@ -43,7 +45,7 @@
   </script>
   {{ end }}
 
-  <h2 class="home-h2">{{ T "home_latest_posts" }}</h2>
+  <h2 class="home-h2 home-h2-posts">{{ T "home_latest_posts" }}</h2>
   {{ $posts := first 5 (where .Site.RegularPages "Section" "blog").ByDate.Reverse }}
   <ul class="home-posts">
     {{ range $posts }}
@@ -54,7 +56,7 @@
   </ul>
 
   {{ with .Site.Taxonomies.tags }}
-  <h2 class="home-h2">{{ T "home_topics" }}</h2>
+  <h2 class="home-h2 home-h2-topics">{{ T "home_topics" }}</h2>
   <div class="topic-cloud">
     {{ range . }}
     <a href="{{ .Page.RelPermalink }}">#{{ .Page.Title }}<span class="topic-count">{{ .Count }}</span></a>

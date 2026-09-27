@@ -54,6 +54,9 @@ params:
   description: "ForeverYang 的个人博客：记录知识管理、AI工具学习、读书与日常折腾。"
   # favicon（静态文件相对路径，至少 32x32 的方形 png）
   favicon: "img/favicon.png"
+  # favicon 版本号：只用于 URL 缓存清理（layouts/partials/favicon.html）。
+  # 换了 static/img/favicon.png 后把这个数字 +1，浏览器才会去取新图标
+  faviconVersion: "3"
   # 自定义日期格式（Go layout 语法），默认是 "02 Jan, 2006"
   # 单数月份 / 日（1、2 而非 01、02）→ 2026年9月27日
   dateFormat: "2006年1月2日"
