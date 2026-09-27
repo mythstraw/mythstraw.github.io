@@ -12,7 +12,7 @@
 // - not_found_handling 必须是 "404-page"：Pages 会自动探测 404.html，Workers 不会，
 //   默认值 "none" 会让不存在的路径只回一句光秃秃的 404，而用不上 layouts/404.html。
 {
-  "name": "foreveryang-blog",
+  "name": "foreveryang",
   "compatibility_date": "2026-09-27",
   "assets": {
     "directory": "./public",
