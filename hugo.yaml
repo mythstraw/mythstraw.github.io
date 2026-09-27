@@ -7,15 +7,17 @@ theme: "hugo-bearneo"
 title: "ForeverYang's 博客"
 
 # ---- 顶部导航菜单 ----
-# 首页与文章由 layouts/partials/nav.html 自动输出，这里只加额外页面
-# （顺序：首页 → 文章 → 下面的项）。name 是显示文案，pageRef 指向 content/ 里的页面。
+# ---- 顶部导航菜单 ----
+# 首页与博客文章由 layouts/partials/nav.html 自动输出，这里只加额外页面
+# （顺序：首页 → 博客文章 → 下面的项，按 weight 升序）。
+# name 是显示文案，pageRef 指向 content/ 里的页面。
 menus:
   main:
-    - name: "关于"
-      pageRef: "/about"
-      weight: 10
-    - name: "项目"
+    - name: "工具推荐"
       pageRef: "/projects"
+      weight: 10
+    - name: "关于我"
+      pageRef: "/about"
       weight: 20
 
 # ---- 语言 ----

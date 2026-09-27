@@ -1,10 +1,10 @@
 {{/*
    站点级覆盖：theme 的 layouts/partials/nav.html
    改动：
-     1) 导航文案走 i18n（首页 / 文章），不再是写死的 Home / Blog；
+     1) 导航文案走 i18n（首页 / 博客文章），不再是写死的 Home / Blog；
      2) 内部链接改用 .RelPermalink（主题用 relURL，不加语言前缀也对，但 RelPermalink 更省心）；
-     3) 顺序调整为：首页 → 文章 → hugo.yaml 里 menus.main 追加的页面（关于 / 项目）；
-    4) 末尾是「浅色 / 深色」切换按钮，由 custom_head.html 里的 CSS 推到导航最右侧
+     3) 顺序调整为：首页 → 博客文章 → hugo.yaml 里 menus.main 追加的页面（工具推荐 / 关于我）；
+    4) 整排导航靠右显示，末尾是「浅色 / 深色」切换按钮，样式都在 custom_head.html
        （站点标题不在导航排上：custom_head.html 让它独占一行并靠右）。
    行为：默认跟随系统（<html> 上不写 data-theme）；点一下按钮就固定为浅色/深色并记住。
 */}}

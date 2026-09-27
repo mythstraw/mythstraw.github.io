@@ -1,11 +1,11 @@
 ---
 # 顶部导航里的名字由 hugo.yaml 的 menus.main 决定，这里只管页面自身。
 # 非 blog 类型的页面主题模板不渲染标题，所以正文里自己写一个 H1。
-title: "关于"
+title: "关于我"
 description: "嗨！这里是 ForeverYang 的博客。"
 ---
 
-# 关于
+# 关于我
 
 嗨！这里是 ForeverYang 的博客。
 

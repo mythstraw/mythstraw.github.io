@@ -4,12 +4,12 @@
      1) 在 <head> 里就把 localStorage 里的明暗锁定写到 <html>，避免刷新时闪白/闪黑；
      2) 主题只有 prefers-color-scheme 自动模式，这里补上「手动锁定浅色/深色」的 CSS 变量覆盖；
      3) 全站配色与字体（中文友好的字体栈 + 靛蓝主色），见下面「设计变量」段；
-     4) 导航里明暗切换按钮的样式：靠右对齐、带图标 + 文字；
+     4) 导航整排靠右显示（与上一行靠右的站点标题对齐），末尾的明暗切换按钮带图标 + 文字；
      5) 引入 assets/css/chroma-light.css 与 chroma-dark.css（hugo gen chromastyles
         生成，深色那份已按 html[data-theme="dark"] / 自动模式作用域包好），
         并给代码块加上底色与细边框；
      6) 首页（.IsHome）额外引入 assets/css/home.css（每日一句 / 最新文章 / 分类入口）；
-     7) 站点标题（header 里的 .title）独占一行并靠右显示，导航在它下面那行靠左。
+     7) 站点标题（header 里的 .title）独占一行并靠右显示，导航在它下面那行同样靠右。
 注意：本文件在主题 style.html 之后引入，所以覆盖优先级正确，无需改动主题源码。
 */}}
 <script>
@@ -102,15 +102,18 @@
     background-color: transparent;
   }
 
-  /* 导航排成一行，切换按钮推到最右边 */
+  /* 导航排成一行并整体靠右（与上一行靠右的站点标题对齐）。
+     注意：这里不能用 .nav-theme { margin-left: auto } 推按钮，
+     自动外边距会吃掉全部剩余空间，justify-content 就失效、整排又回到左边。 */
   header nav {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
+    justify-content: flex-end;
   }
 
   .nav-theme {
-    margin-left: auto;
+    margin-left: 8px;
   }
 
   /* 站点标题：独占一行（导航在下一行），行内文字靠右显示。
