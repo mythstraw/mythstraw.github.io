@@ -1,3 +1,4 @@
 {{- /* 行内高亮短代码：{{< mark >}}文字{{< /mark >}} → <mark>文字</mark>
-       Goldmark 默认丢弃 Markdown 正文里的原始 HTML，所以用短代码包一层。 */ -}}
+       Goldmark 默认丢弃 Markdown 正文里的原始 HTML，所以用短代码包一层。
+       注意：模板末尾不能留空行，否则输出的换行会插进标题/段落里。 */ -}}
 <mark>{{ .Inner }}</mark>

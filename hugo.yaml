@@ -109,3 +109,10 @@ markup:
   # 这样浅色模式用浅底深字、深色模式用深底浅字，两态各有一套配色。
   highlight:
     noClasses: false
+
+  # 段内单个换行也渲染成 <br>（CommonMark 默认把它折叠成一个空格，
+  # 于是 Obsidian 里看着有换行、网页上却连成一行）。开成 true 后
+  # 正文怎么写就怎么显示，源文件不用为了排版额外加空行。
+  goldmark:
+    renderer:
+      hardWraps: true
