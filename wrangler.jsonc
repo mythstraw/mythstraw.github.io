@@ -1,0 +1,21 @@
+// Cloudflare Workers Static Assets 配置
+// 用途：把 Hugo 构建产物 public/ 作为静态资源部署到 Cloudflare Workers。
+//
+// 控制台（Workers & Pages → Create application → Import a repository）里要对应填：
+//   名称 / Build command / Deploy command / Build variables
+// 其中 name 必须与控制台里的 Worker 名完全一致，否则 Workers Builds 直接失败。
+//
+// 说明：
+// - main 不写：这是「纯静态资源」的 Worker，没有服务端脚本（以后要加 API 时再补 main）。
+// - binding 不写：只在有 main 时才需要 ASSETS 绑定。
+// - html_handling 用默认值 auto-trailing-slash，正好匹配 Hugo 的 /p/slug/ 漂亮 URL，不用显式写。
+// - not_found_handling 必须是 "404-page"：Pages 会自动探测 404.html，Workers 不会，
+//   默认值 "none" 会让不存在的路径只回一句光秃秃的 404，而用不上 layouts/404.html。
+{
+  "name": "foreveryang-blog",
+  "compatibility_date": "2026-09-27",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+}
