@@ -1,12 +1,12 @@
 {{/*
-   站点级覆盖：theme 的 layouts/partials/nav.html
-   改动：
-     1) 导航文案走 i18n（首页 / 博客文章），不再是写死的 Home / Blog；
-     2) 内部链接改用 .RelPermalink（主题用 relURL，不加语言前缀也对，但 RelPermalink 更省心）；
-     3) 顺序调整为：首页 → 博客文章 → hugo.yaml 里 menus.main 追加的页面（工具推荐 / 关于我）；
-    4) 整排导航靠右显示，末尾是「浅色 / 深色」切换按钮，样式都在 custom_head.html
-       （站点标题不在导航排上：custom_head.html 让它独占一行并靠右）。
-   行为：默认跟随系统（<html> 上不写 data-theme）；点一下按钮就固定为浅色/深色并记住。
+    站点级覆盖：theme 的 layouts/partials/nav.html
+    改动：
+      1) 导航文案走 i18n（首页 / 博客文章 / 工具推荐 / 关于我），不再是写死的 Home / Blog；
+      2) 内部链接改用 .RelPermalink（主题用 relURL，不加语言前缀也对，但 RelPermalink 更省心）；
+      3) 顺序：首页 → 博客文章 → hugo.yaml 里 menus.main 追加的页面（工具推荐 / 关于我）；
+      4) 整排导航靠右显示。
+    注意：明暗切换按钮已经从这里挪走了 —— 现在挂在标题那一行的最左侧，
+    见 partials/header.html 与 partials/theme-toggle.html。
 */}}
 <a href="{{ .Site.Home.RelPermalink }}">{{ T "nav_home" }}</a>
 {{ with .Site.GetPage "/blog" }}
@@ -21,69 +21,3 @@
 <a href="{{ .URL }}">{{ .Name }}</a>
 {{ end }}
 {{ end }}
-<span class="nav-theme">
-  <button id="theme-toggle" class="theme-toggle" type="button" title="{{ T "theme_mode_light" }}{{ T "theme_toggle_hint" }}{{ T "theme_mode_dark" }}">
-    <span id="theme-toggle-icon" class="theme-toggle-icon" aria-hidden="true">☀️</span><span id="theme-toggle-text" class="theme-toggle-text">{{ T "theme_mode_light" }}</span>
-  </button>
-</span>
-<script>
-  (function () {
-    var LIGHT = 'light';
-    var DARK = 'dark';
-    var ICONS = { light: '☀️', dark: '🌙' };
-    var LABELS = {
-      light: {{ T "theme_mode_light" | jsonify | safeJS }},
-      dark: {{ T "theme_mode_dark" | jsonify | safeJS }}
-    };
-    var FOLLOW = {{ T "theme_follow_system" | jsonify | safeJS }};
-    var HINT = {{ T "theme_toggle_hint" | jsonify | safeJS }};
-
-    var mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-    var root = document.documentElement;
-    var btn = document.getElementById('theme-toggle');
-    var icon = document.getElementById('theme-toggle-icon');
-    var text = document.getElementById('theme-toggle-text');
-
-    // 用户手动选过 → 返回 'light'/'dark'；没选过 → null（即跟随系统）
-    function stored() {
-      var v = null;
-      try { v = localStorage.getItem('theme-mode'); } catch (e) { }
-      return (v === LIGHT || v === DARK) ? v : null;
-    }
-    function systemMode() { return (mql && mql.matches) ? DARK : LIGHT; }
-    function current() { return stored() || systemMode(); }
-
-    function render() {
-      var memo = stored();
-      var mode = memo || systemMode();
-      var next = (mode === LIGHT) ? DARK : LIGHT;
-      // 只有手动锁定才写 data-theme，否则交给 prefers-color-scheme
-      if (memo) { root.setAttribute('data-theme', mode); } else { root.removeAttribute('data-theme'); }
-      root.setAttribute('data-theme-mode', memo || 'auto');
-      if (icon) { icon.textContent = ICONS[mode]; }
-      if (text) { text.textContent = LABELS[mode]; }
-      if (btn) {
-        var label = (memo ? '' : FOLLOW + '：') + LABELS[mode] + HINT + LABELS[next];
-        btn.title = label;
-        btn.setAttribute('aria-label', label);
-      }
-    }
-
-    if (btn) {
-      btn.addEventListener('click', function () {
-        var next = (current() === LIGHT) ? DARK : LIGHT;
-        try { localStorage.setItem('theme-mode', next); } catch (e) { }
-        render();
-      });
-    }
-
-    // 还没手动锁定时，系统主题变了要同步按钮上的图标与文字
-    if (mql) {
-      var onChange = function () { if (!stored()) { render(); } };
-      if (mql.addEventListener) { mql.addEventListener('change', onChange); }
-      else if (mql.addListener) { mql.addListener(onChange); }
-    }
-
-    render();
-  })();
-</script>

@@ -1,0 +1,11 @@
+{{/*
+    明暗切换按钮（从 partials/nav.html 里挪出来的，原来挂在导航排末尾）。
+    由 partials/header.html 放在「站点标题」那一行的最左侧；
+    配套的 JS 在 partials/theme-toggle-script.html（紧跟在标题行之后输出）。
+    文案走 i18n/zh-cn.toml 的 theme_* 键；样式在 partials/custom_head.html。
+*/}}
+<span class="header-theme">
+  <button id="theme-toggle" class="theme-toggle" type="button" title="{{ T "theme_mode_light" }}{{ T "theme_toggle_hint" }}{{ T "theme_mode_dark" }}">
+    <span id="theme-toggle-icon" class="theme-toggle-icon" aria-hidden="true">☀️</span><span id="theme-toggle-text" class="theme-toggle-text">{{ T "theme_mode_light" }}</span>
+  </button>
+</span>

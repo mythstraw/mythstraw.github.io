@@ -7,7 +7,7 @@ description: "嗨！这里是 ForeverYang 的博客。"
 
 # 关于我
 
-嗨！这里是 ForeverYang 的博客。
+# 嗨！这里是 ForeverYang 的博客。
 
 我是一个家装设计师，也玩 3D 打印，关于科技的一切都感兴趣。
 
@@ -17,10 +17,12 @@ description: "嗨！这里是 ForeverYang 的博客。"
 
 目前，我用 AI 做过 skill，做过一些网页端的 app，做过个人网站，一点点尝试一点点进步。
 
-除此之外，我的两大爱好是听赵雷 🦔，看海贼 ⚓️。
+除此之外，我的两大爱好是听赵雷🦔，看海贼 ⚓️。
 
-在这里，我记录关于科技、关于知识学习，相关的内容。
+在这里，我记录关于科技、关于知识学习相关的内容。
 
 ## 联系方式
 
-邮箱：mythstraw@msn.com  欢迎来信，或者直接[订阅 RSS](/index.xml)。
+邮箱：<mythstraw@msn.com>  
+
+欢迎来信，或者直接[订阅 RSS](/index.xml)。

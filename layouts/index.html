@@ -6,7 +6,7 @@
         Hugo 构建时先渲染一条（无 JS 也能看），再由下面这段内联 JS 按「访客本地日期」换成当天那条 ——
         纯静态站点不会自己每天重构，所以真正的「每天不一样」是前端完成的
         （Hugo 与 JS 用同一套算法，日期相同就不会闪）。
-     2) 最新文章：blog 区最新的 5 篇。
+      2) 最新文章：blog 区最新的 5 篇，普通无序列表（只列标题，不带日期，也没有「全部文章」入口）。
      3) 分类入口：标签云，点进去就是该标签的文章列表。
    名句库 data/quotes.yaml（单独一份文档，顺序即轮换顺序；想通读全表看 /quotes/ 页面）；
    首页样式 assets/css/home.css；文案 i18n/zh-cn.toml。
@@ -47,17 +47,11 @@
   {{ $posts := first 5 (where .Site.RegularPages "Section" "blog").ByDate.Reverse }}
   <ul class="home-posts">
     {{ range $posts }}
-    <li>
-      <time datetime='{{ .Date.Format "2006-01-02" }}'>{{ .Date.Format (default "2006年1月2日" site.Params.dateFormat) }}</time>
-      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-    </li>
+    <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
     {{ else }}
     <li>{{ T "no_posts" }}</li>
     {{ end }}
   </ul>
-  {{ with .Site.GetPage "/blog" }}
-  <p class="home-more"><a href="{{ .RelPermalink }}">{{ T "home_all_posts" }} →</a></p>
-  {{ end }}
 
   {{ with .Site.Taxonomies.tags }}
   <h2 class="home-h2">{{ T "home_topics" }}</h2>

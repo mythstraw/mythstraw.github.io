@@ -28,9 +28,6 @@ other = "今天"
 [home_latest_posts]
 other = "最新文章"
 
-[home_all_posts]
-other = "全部文章"
-
 [home_topics]
 other = "分类"
 

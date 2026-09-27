@@ -1,0 +1,17 @@
+{{/*
+    站点级覆盖：theme 的 layouts/partials/header.html（主题原版只有「站点标题 + 导航」两行）。
+    现在的结构：
+      第 1 行  [☀️ 浅色] …………………… [站点标题]        ← .header-title-row（flex，两端对齐）
+      第 2 行  …………………………… [首页 博客文章 工具推荐 关于我]  ← <nav> 整排靠右
+    也就是把明暗切换按钮从导航行挪到标题这一行、并放到最左端。
+    按钮本体在 partials/theme-toggle.html，它的 JS 在 partials/theme-toggle-script.html
+    （紧跟标题行输出，必须在按钮之后，否则绑不上点击事件）；样式在 partials/custom_head.html。
+*/}}
+<div class="header-title-row">
+  {{- partial "theme-toggle.html" . -}}
+  <a href="{{ "" | relURL }}" class="title">
+    <h1>{{ .Site.Title }}</h1>
+  </a>
+</div>
+{{- partial "theme-toggle-script.html" . -}}
+<nav>{{- partial "nav.html" . -}}</nav>
