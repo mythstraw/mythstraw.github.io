@@ -4,13 +4,25 @@ baseURL: "https://mythstraw.github.io/"
 theme: "hugo-bearneo"
 
 # 站点名称（同时用于生成的 HTML 元数据）
-title: "[ForeverYang's Blogs]"
+title: "ForeverYang's 博客"
 
-# ---- 多语言 ----
-# 默认中文，且不带路径前缀（原有链接全部不变）；英文站挂在 /en/ 下。
-# 界面文案在 i18n/zh-cn.toml 与 i18n/en.toml；
-# 某篇文章要出英文版，就在同目录放一个同名的 xxx.en.md。
-# 不需要英文站：删掉 languages.en 这一段、content/_index.en.md、content/blog/_index.en.md 即可。
+# ---- 顶部导航菜单 ----
+# 首页与文章由 layouts/partials/nav.html 自动输出，这里只加额外页面
+# （顺序：首页 → 文章 → 下面的项）。name 是显示文案，pageRef 指向 content/ 里的页面。
+menus:
+  main:
+    - name: "关于"
+      pageRef: "/about"
+      weight: 10
+    - name: "项目"
+      pageRef: "/projects"
+      weight: 20
+
+# ---- 语言 ----
+# 站点只保留中文一种语言：URL 不带语言前缀，原有链接全部不变。
+# 界面文案统一放 i18n/zh-cn.toml；语言 key 必须与下面 languages 的键名一致
+# （直接删掉整个 languages 段，Hugo 会回落到默认语言 en，界面文案就会变成 key 名）。
+# 以后要恢复英文站：加回 languages.en 段 + i18n/en.toml，需要英文版的页面放同名 xxx.en.md。
 defaultContentLanguage: "zh-cn"
 defaultContentLanguageInSubdir: false
 languages:
@@ -19,13 +31,7 @@ languages:
     languageCode: "zh-cn"
     weight: 1
     params:
-      description: "ForeverYang 的个人博客：记录知识管理、AI 工具链、读书与日常折腾。"
-  en:
-    languageName: "English"
-    languageCode: "en-US"
-    weight: 2
-    params:
-      description: "ForeverYang's personal blog: notes on knowledge management, AI tooling, reading, and tinkering."
+      description: "ForeverYang 的个人博客：记录知识管理、AI工具学习、读书与日常折腾。"
 
 # 生成 robots.txt（利于 SEO）
 enableRobotsTXT: true
@@ -41,13 +47,16 @@ permalinks:
 
 params:
   # 用于 Hugo 内置 opengraph 模板的 site_name
-  title: "[ForeverYang's Blogs]"
+  title: "ForeverYang's 博客"
   # 站点描述（出现在搜索引擎结果与社交分享）
-  description: "ForeverYang 的个人博客：记录知识管理、AI 工具链、读书与日常折腾。"
+  description: "ForeverYang 的个人博客：记录知识管理、AI工具学习、读书与日常折腾。"
   # favicon（静态文件相对路径，至少 32x32 的方形 png）
   favicon: "img/favicon.png"
   # 自定义日期格式（Go layout 语法），默认是 "02 Jan, 2006"
-  dateFormat: "2006-01-02"
+  # 单数月份 / 日（1、2 而非 01、02）→ 2026年9月27日
+  dateFormat: "2006年1月2日"
+  # 文章列表页在「按年份分组」时用的短格式（年份由分组标题给出，日期只留月日）
+  dateFormatShort: "1月2日"
   # 版权文案，用于 RSS 和页脚
   copyright: "Copyright © 2026, ForeverYang"
 
@@ -82,10 +91,16 @@ params:
   author:
     name: "ForeverYang"
     # 填上邮箱后，页脚会多出 "say hello" 邮件链接（会公开显示）
-    # email: "mythstraw@msn.com"
+    email: "mythstraw@msn.com"
 
 markup:
   # 目录只渲染 h2 ~ h3
   tableOfContents:
     startLevel: 2
     endLevel: 3
+
+  # 代码高亮改成 class 模式（不再写行内 style），配色由
+  # assets/css/chroma-light.css 与 chroma-dark.css 提供（hugo gen chromastyles 生成），
+  # 这样浅色模式用浅底深字、深色模式用深底浅字，两态各有一套配色。
+  highlight:
+    noClasses: false

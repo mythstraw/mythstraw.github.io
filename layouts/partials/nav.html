@@ -1,11 +1,17 @@
 {{/*
-  站点级覆盖：theme 的 layouts/partials/nav.html
-  改动：
-    1) 导航文案走 i18n（首页 / 文章），不再是写死的 Home / Blog；
-    2) 内部链接改用 .RelPermalink，多语言下指向当前语言的页面（主题用 relURL，英文站会跳回中文）；
-    3) 末尾追加「语言切换」与「明暗模式切换」。
+   站点级覆盖：theme 的 layouts/partials/nav.html
+   改动：
+     1) 导航文案走 i18n（首页 / 文章），不再是写死的 Home / Blog；
+     2) 内部链接改用 .RelPermalink（主题用 relURL，不加语言前缀也对，但 RelPermalink 更省心）；
+     3) 顺序调整为：首页 → 文章 → hugo.yaml 里 menus.main 追加的页面（关于 / 项目）；
+    4) 末尾是「浅色 / 深色」切换按钮，由 custom_head.html 里的 CSS 推到导航最右侧
+       （站点标题不在导航排上：custom_head.html 让它独占一行并靠右）。
+   行为：默认跟随系统（<html> 上不写 data-theme）；点一下按钮就固定为浅色/深色并记住。
 */}}
 <a href="{{ .Site.Home.RelPermalink }}">{{ T "nav_home" }}</a>
+{{ with .Site.GetPage "/blog" }}
+<a href="{{ .RelPermalink }}">{{ T "nav_blog" }}</a>
+{{ end }}
 {{ $newTabEnabled := .Site.Params.externalLinksNewTab | default false }}
 {{ range .Site.Menus.main }}
 {{ $isExternal := or (hasPrefix .URL "http://") (hasPrefix .URL "https://") }}
@@ -15,62 +21,69 @@
 <a href="{{ .URL }}">{{ .Name }}</a>
 {{ end }}
 {{ end }}
-{{ with .Site.GetPage "/blog" }}
-<a href="{{ .RelPermalink }}">{{ T "nav_blog" }}</a>
-{{ end }}
-{{ if gt (len .Site.Languages) 1 }}
-{{ $alts := .AllTranslations }}
-{{ if le (len $alts) 1 }}{{ $alts = .Site.Home.AllTranslations }}{{ end }}
-<span class="nav-lang">
-  {{- range $alts }}{{ if ne .Lang $.Site.Language.Lang }}
-  <a href="{{ .RelPermalink }}" hreflang="{{ .Lang }}" lang="{{ .Lang }}" title="{{ T "lang_switch_title" }}">{{ .Language.LanguageName }}</a>
-  {{ end }}{{ end -}}
-</span>
-{{ end }}
 <span class="nav-theme">
-  <button id="theme-toggle" class="theme-toggle" type="button" aria-label="{{ T "theme_mode_auto" }}">
-    <span id="theme-toggle-icon" aria-hidden="true">🌗</span>
+  <button id="theme-toggle" class="theme-toggle" type="button" title="{{ T "theme_mode_light" }}{{ T "theme_toggle_hint" }}{{ T "theme_mode_dark" }}">
+    <span id="theme-toggle-icon" class="theme-toggle-icon" aria-hidden="true">☀️</span><span id="theme-toggle-text" class="theme-toggle-text">{{ T "theme_mode_light" }}</span>
   </button>
 </span>
 <script>
   (function () {
-    var MODES = ['auto', 'light', 'dark'];
-    var ICONS = { auto: '🌗', light: '☀️', dark: '🌙' };
+    var LIGHT = 'light';
+    var DARK = 'dark';
+    var ICONS = { light: '☀️', dark: '🌙' };
     var LABELS = {
-      auto: {{ T "theme_mode_auto" | jsonify | safeJS }},
       light: {{ T "theme_mode_light" | jsonify | safeJS }},
       dark: {{ T "theme_mode_dark" | jsonify | safeJS }}
     };
+    var FOLLOW = {{ T "theme_follow_system" | jsonify | safeJS }};
     var HINT = {{ T "theme_toggle_hint" | jsonify | safeJS }};
 
+    var mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
     var root = document.documentElement;
     var btn = document.getElementById('theme-toggle');
     var icon = document.getElementById('theme-toggle-icon');
-    var mode = 'auto';
-    try { mode = localStorage.getItem('theme-mode') || 'auto'; } catch (e) { }
-    if (MODES.indexOf(mode) === -1) { mode = 'auto'; }
+    var text = document.getElementById('theme-toggle-text');
+
+    // 用户手动选过 → 返回 'light'/'dark'；没选过 → null（即跟随系统）
+    function stored() {
+      var v = null;
+      try { v = localStorage.getItem('theme-mode'); } catch (e) { }
+      return (v === LIGHT || v === DARK) ? v : null;
+    }
+    function systemMode() { return (mql && mql.matches) ? DARK : LIGHT; }
+    function current() { return stored() || systemMode(); }
 
     function render() {
-      if (mode === 'auto') {
-        root.removeAttribute('data-theme');
-      } else {
-        root.setAttribute('data-theme', mode);
-      }
-      root.setAttribute('data-theme-mode', mode);
+      var memo = stored();
+      var mode = memo || systemMode();
+      var next = (mode === LIGHT) ? DARK : LIGHT;
+      // 只有手动锁定才写 data-theme，否则交给 prefers-color-scheme
+      if (memo) { root.setAttribute('data-theme', mode); } else { root.removeAttribute('data-theme'); }
+      root.setAttribute('data-theme-mode', memo || 'auto');
       if (icon) { icon.textContent = ICONS[mode]; }
+      if (text) { text.textContent = LABELS[mode]; }
       if (btn) {
-        btn.title = LABELS[mode] + HINT;
-        btn.setAttribute('aria-label', LABELS[mode] + HINT);
+        var label = (memo ? '' : FOLLOW + '：') + LABELS[mode] + HINT + LABELS[next];
+        btn.title = label;
+        btn.setAttribute('aria-label', label);
       }
     }
 
     if (btn) {
       btn.addEventListener('click', function () {
-        mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
-        try { localStorage.setItem('theme-mode', mode); } catch (e) { }
+        var next = (current() === LIGHT) ? DARK : LIGHT;
+        try { localStorage.setItem('theme-mode', next); } catch (e) { }
         render();
       });
     }
+
+    // 还没手动锁定时，系统主题变了要同步按钮上的图标与文字
+    if (mql) {
+      var onChange = function () { if (!stored()) { render(); } };
+      if (mql.addEventListener) { mql.addEventListener('change', onChange); }
+      else if (mql.addListener) { mql.addListener(onChange); }
+    }
+
     render();
   })();
 </script>

@@ -1,19 +1,29 @@
 {{/*
-  站点级覆盖：theme 的 layouts/partials/custom_head.html
-  改动：
-    1) 在 <head> 里就把 localStorage 的明暗模式写到 <html>，避免刷新时闪白/闪黑；
-    2) 主题只有 prefers-color-scheme 自动模式，这里补上「手动锁定浅色/深色」的 CSS 变量覆盖；
-    3) 明暗切换按钮的样式。
-  注意：本文件在主题 style.html 之后引入，所以覆盖优先级正确，无需改动主题源码。
+   站点级覆盖：theme 的 layouts/partials/custom_head.html
+   改动：
+     1) 在 <head> 里就把 localStorage 里的明暗锁定写到 <html>，避免刷新时闪白/闪黑；
+     2) 主题只有 prefers-color-scheme 自动模式，这里补上「手动锁定浅色/深色」的 CSS 变量覆盖；
+     3) 全站配色与字体（中文友好的字体栈 + 靛蓝主色），见下面「设计变量」段；
+     4) 导航里明暗切换按钮的样式：靠右对齐、带图标 + 文字；
+     5) 引入 assets/css/chroma-light.css 与 chroma-dark.css（hugo gen chromastyles
+        生成，深色那份已按 html[data-theme="dark"] / 自动模式作用域包好），
+        并给代码块加上底色与细边框；
+     6) 首页（.IsHome）额外引入 assets/css/home.css（每日一句 / 最新文章 / 分类入口）；
+     7) 站点标题（header 里的 .title）独占一行并靠右显示，导航在它下面那行靠左。
+注意：本文件在主题 style.html 之后引入，所以覆盖优先级正确，无需改动主题源码。
 */}}
 <script>
   (function () {
-    var mode = 'auto';
-    try { mode = localStorage.getItem('theme-mode') || 'auto'; } catch (e) { }
-    if (mode !== 'light' && mode !== 'dark') { mode = 'auto'; }
+    var mode = null;
+    try { mode = localStorage.getItem('theme-mode'); } catch (e) { }
     var root = document.documentElement;
-    root.setAttribute('data-theme-mode', mode);
-    if (mode !== 'auto') { root.setAttribute('data-theme', mode); }
+    if (mode === 'light' || mode === 'dark') {
+      root.setAttribute('data-theme', mode);
+      root.setAttribute('data-theme-mode', mode);
+    } else {
+      // 默认（没手动选过）跟随系统，不写 data-theme
+      root.setAttribute('data-theme-mode', 'auto');
+    }
   })();
 </script>
 <style>
@@ -22,37 +32,96 @@
     color-scheme: light dark;
   }
 
-  /* 手动锁定浅色：与主题 :root 的浅色变量一致，但优先级更高，可压过系统深色偏好 */
+  /* ===== 设计变量 =====
+     主题 style.html 在本文件之前输出（:root 浅色 + @media 深色），
+     这里重写同一批变量，所以一定能盖住主题默认值。
+     下面三个分支必须写全，否则「跟随系统」与「手动锁定」会变成两套配色：
+       1) :root / html[data-theme="light"]    浅色
+       2) @media (prefers-color-scheme: dark) 自动模式 + 系统深色
+       3) html[data-theme="dark"]             手动锁定深色
+     带 data-theme 的选择器权重更高，能压过第 2 条里的系统深色偏好。 */
+
+  /* 字体不随明暗变化，单独放一份；中文优先使用系统自带的现代无衬线字体 */
+  :root {
+    --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
+    --font-secondary: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Cascadia Mono", "Microsoft YaHei", monospace;
+  }
+
+  /* 1) 浅色：暖白纸面 + 靛蓝链接 */
+  :root,
   html[data-theme="light"] {
     color-scheme: light;
-    --bg-color-primary: #fdfdfd;
-    --bg-color-secondary: #f2f4f7;
-    --text-color-primary: #1a1a1a;
-    --text-color-secondary: #444;
-    --text-color-tertiary: #8c8c8c;
-    --link-color: #0066cc;
-    --link-visited-color: #551a8b;
-    --border-color: #d0d7de;
-    --upvoted-color: #fa8072;
+    --bg-color-primary: #fcfcfa;
+    --bg-color-secondary: #f3f3f1;
+    --text-color-primary: #21252b;
+    --text-color-secondary: #545b64;
+    --text-color-tertiary: #8d949e;
+    --link-color: #1a5fb4;
+    --link-visited-color: #7a4bb5;
+    --border-color: #dcdfe2;
+    --upvoted-color: #d9534f;
   }
 
-  /* 手动锁定深色：与主题 @media (prefers-color-scheme: dark) 里的变量一致 */
+  /* 2) 自动模式 + 系统深色（没手动锁定 data-theme 时走这条） */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --bg-color-primary: #14171a;
+      --bg-color-secondary: #1e2227;
+      --text-color-primary: #e7e9ec;
+      --text-color-secondary: #b3bac2;
+      --text-color-tertiary: #8b929a;
+      --link-color: #6aa9f0;
+      --link-visited-color: #b79bff;
+      --border-color: #2b3138;
+      --upvoted-color: #ff7b72;
+    }
+  }
+
+  /* 3) 手动锁定深色：与第 2 条取值一致 */
   html[data-theme="dark"] {
     color-scheme: dark;
-    --bg-color-primary: #121212;
-    --bg-color-secondary: #1c1f24;
-    --text-color-primary: #e5e5e5;
-    --text-color-secondary: #b3b3b7;
-    --text-color-tertiary: #a0a0a0;
-    --link-color: #6da6ff;
-    --link-visited-color: #b388ff;
-    --border-color: #30363d;
-    --upvoted-color: #ff6b6b;
+    --bg-color-primary: #14171a;
+    --bg-color-secondary: #1e2227;
+    --text-color-primary: #e7e9ec;
+    --text-color-secondary: #b3bac2;
+    --text-color-tertiary: #8b929a;
+    --link-color: #6aa9f0;
+    --link-visited-color: #b79bff;
+    --border-color: #2b3138;
+    --upvoted-color: #ff7b72;
   }
 
-  /* 导航里的明暗切换按钮 */
+  /* 日期改用正文字体：等宽字体里「年月日」会落到别的回退字体，字宽不齐 */
+  time {
+    font-family: var(--font-primary);
+  }
+
+/* 代码块内层 code 透明，露出外层 pre 的底色（避免主题给 code 设的底色盖住高亮底色） */
+  div.highlight pre code {
+    background-color: transparent;
+  }
+
+  /* 导航排成一行，切换按钮推到最右边 */
+  header nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  .nav-theme {
+    margin-left: auto;
+  }
+
+  /* 站点标题：独占一行（导航在下一行），行内文字靠右显示。
+     .title 是套着主题 <h1> 的 <a>，所以直接在 <a> 上设 text-align，
+     里面的块级 h1 会继承它 —— 不需要把 <a> 改成块级，链接点击区域保持原样。 */
+  header > a.title {
+    text-align: right;
+  }
+
   button.theme-toggle {
-    margin: 0 8px 0 0;
+    margin: 0;
     padding: 0;
     border: 0;
     background: none;
@@ -61,6 +130,7 @@
     line-height: inherit;
     color: var(--link-color);
     cursor: pointer;
+    white-space: nowrap;
   }
 
   button.theme-toggle:hover {
@@ -68,8 +138,25 @@
     text-underline-offset: 3px;
   }
 
-  /* 导航里的语言切换 */
-  span.nav-lang a {
-    margin-right: 8px;
+  button.theme-toggle .theme-toggle-icon {
+    margin-right: 4px;
   }
 </style>
+
+{{/* 代码块语法高亮配色（class 模式，见 hugo.yaml 的 markup.highlight.noClasses）。
+     浅色一份直接生效；深色那份的选择器已限定为 html[data-theme="dark"]
+     以及「自动模式 + 系统深色」，所以两种模式互不干扰。 */}}
+{{ with resources.Get "css/chroma-light.css" }}<style>{{ .Content | safeCSS }}</style>{{ end }}
+{{ with resources.Get "css/chroma-dark.css" }}<style>{{ .Content | safeCSS }}</style>{{ end }}
+
+<style>
+  /* 代码块外观：底色跟主题的次级底色，加一圈细边框，浅色/深色都成立 */
+  div.highlight pre.chroma {
+    background-color: var(--bg-color-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+  }
+</style>
+
+{{/* 首页专用样式：名句卡片、最新文章列表、分类入口 */}}
+{{ if .IsHome }}{{ with resources.Get "css/home.css" }}<style>{{ .Content | safeCSS }}</style>{{ end }}{{ end }}

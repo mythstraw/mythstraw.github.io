@@ -82,7 +82,8 @@
         <i>
           <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
             {{ if .Site.Params.groupByYear }}
-            {{ .Date.Format (default "02 Jan." .Site.Params.dateFormat) }}
+            {{/* 年份已经由上面的分组标题给出，这里只留「月日」，避免 80px 的日期列放不下中文长日期 */}}
+            {{ .Date.Format (default "1月2日" .Site.Params.dateFormatShort) }}
             {{ else }}
             {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
             {{ end }}

@@ -1,0 +1,71 @@
+{{/*
+   站点级覆盖：theme 的 layouts/index.html（主题版只有一行 {{ .Content }}）。
+   首页现在是三块：
+     1) 每日一句：纯粗体文字，没有卡片、没有按钮；整块居中（宽度 fit-content + 左右 auto 边距），
+        作者在名句下面另起一行、右对齐到名句右侧（样式都在 assets/css/home.css）。
+        Hugo 构建时先渲染一条（无 JS 也能看），再由下面这段内联 JS 按「访客本地日期」换成当天那条 ——
+        纯静态站点不会自己每天重构，所以真正的「每天不一样」是前端完成的
+        （Hugo 与 JS 用同一套算法，日期相同就不会闪）。
+     2) 最新文章：blog 区最新的 5 篇。
+     3) 分类入口：标签云，点进去就是该标签的文章列表。
+   名句库 data/quotes.yaml（单独一份文档，顺序即轮换顺序；想通读全表看 /quotes/ 页面）；
+   首页样式 assets/css/home.css；文案 i18n/zh-cn.toml。
+*/}}
+{{ define "main" }}
+{{ $quotes := site.Data.quotes }}
+{{ $count := len $quotes }}
+{{ $idx := 0 }}
+{{ if gt $count 0 }}
+{{/* 与下面 JS 同一套算法：距 2000-01-01 的天数 mod 名句条数 */}}
+{{ $idx = mod (div (int (now.Sub (time "2000-01-01T00:00:00Z")).Hours) 24) $count }}
+{{ end }}
+<content>
+  {{ if gt $count 0 }}
+  {{ $quote := index $quotes $idx }}
+  <p class="home-quote">
+    <strong class="quote-text" id="quote-text">{{ $quote.text }}</strong>
+    <span class="quote-author-line"><span class="quote-author" id="quote-author">{{ $quote.author }}</span></span>
+  </p>
+  <script>
+    (function () {
+      var quotes = {{ $quotes | jsonify | safeJS }};
+      var textEl = document.getElementById('quote-text');
+      var authorEl = document.getElementById('quote-author');
+      if (!quotes || !quotes.length || !textEl) { return; }
+      // 与模板里 $idx 同一套算法：距 2000-01-01 的天数（访客本地时区）mod 名句条数
+      var now = new Date();
+      var days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(2000, 0, 1)) / 86400000);
+      var q = quotes[((days % quotes.length) + quotes.length) % quotes.length];
+      // 上面先按构建日期的算法渲染过一条，这里替换成访客本地日期的那条
+      textEl.textContent = q.text;
+      if (authorEl) { authorEl.textContent = q.author || ''; }
+    })();
+  </script>
+  {{ end }}
+
+  <h2 class="home-h2">{{ T "home_latest_posts" }}</h2>
+  {{ $posts := first 5 (where .Site.RegularPages "Section" "blog").ByDate.Reverse }}
+  <ul class="home-posts">
+    {{ range $posts }}
+    <li>
+      <time datetime='{{ .Date.Format "2006-01-02" }}'>{{ .Date.Format (default "2006年1月2日" site.Params.dateFormat) }}</time>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    </li>
+    {{ else }}
+    <li>{{ T "no_posts" }}</li>
+    {{ end }}
+  </ul>
+  {{ with .Site.GetPage "/blog" }}
+  <p class="home-more"><a href="{{ .RelPermalink }}">{{ T "home_all_posts" }} →</a></p>
+  {{ end }}
+
+  {{ with .Site.Taxonomies.tags }}
+  <h2 class="home-h2">{{ T "home_topics" }}</h2>
+  <div class="topic-cloud">
+    {{ range . }}
+    <a href="{{ .Page.RelPermalink }}">#{{ .Page.Title }}<span class="topic-count">{{ .Count }}</span></a>
+    {{ end }}
+  </div>
+  {{ end }}
+</content>
+{{ end }}

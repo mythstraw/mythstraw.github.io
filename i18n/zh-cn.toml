@@ -22,11 +22,17 @@ other = "共 {{ .n }} 篇文章"
 [no_posts]
 other = "还没有文章"
 
-[lang_switch_title]
-other = "切换语言"
+[quotes_today]
+other = "今天"
 
-[theme_mode_auto]
-other = "跟随系统"
+[home_latest_posts]
+other = "最新文章"
+
+[home_all_posts]
+other = "全部文章"
+
+[home_topics]
+other = "分类"
 
 [theme_mode_light]
 other = "浅色"
@@ -34,8 +40,11 @@ other = "浅色"
 [theme_mode_dark]
 other = "深色"
 
+[theme_follow_system]
+other = "当前跟随系统"
+
 [theme_toggle_hint]
-other = "，点击切换"
+other = "，点击切换为"
 
 [footer_rss_and_email]
 other = '订阅 <a href="{{ .rss }}">RSS</a>，或者<a href="mailto:{{ .email }}">写信给我</a>。'
@@ -47,7 +56,7 @@ other = '订阅 <a href="{{ .rss }}">RSS</a>。'
 other = '通过 <a href="mailto:{{ .email }}">邮件</a>联系我。'
 
 [footer_made_with]
-other = '由 <a href="https://github.com/rokcso/hugo-bearneo/">Hugo Bear Neo</a> 驱动。'
+other = '采用 <a href="https://github.com/rokcso/hugo-bearneo/">Hugo Bear Neo</a> 主题。'
 
 [footer_sitemap]
 other = '🗺️ <a href="{{ .url }}">站点地图</a>'

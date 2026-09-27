@@ -1,0 +1,110 @@
+/* 首页专用样式（由 layouts/partials/custom_head.html 在 .IsHome 时引入）
+   颜色与字体一律用 custom_head.html 里定义的 CSS 变量，
+   所以明暗两种模式、手动锁定与跟随系统都能自动跟上，不用在这里再写一遍配色。 */
+
+/* ---------- 每日一句（纯粗体文字，无卡片、无按钮） ---------- */
+p.home-quote {
+  /* 关键：宽度贴合内容本身（fit-content）——
+     这样块级元素才能被左右 auto 边距水平居中，
+     也才能让「作者右对齐」对齐到名句的右侧而不是页面右边缘。 */
+  width: fit-content;
+  max-width: 100%;
+  /* 左右 auto → 整块居中；上下同一个值（34px，与「最新文章」小标题的上边距一致）→ 四周留白一致 */
+  margin: 34px auto;
+  padding: 0;
+  font-size: 1.3em;
+  line-height: 1.7;
+  color: var(--text-color-primary);
+  /* 想让名句文字本身也居中排列，取消下面这行的注释即可 */
+  /* text-align: center; */
+}
+
+p.home-quote strong.quote-text {
+  font-weight: 700;
+}
+
+/* 作者另起一行，右对齐到上面名句的右侧 */
+p.home-quote span.quote-author-line {
+  display: block;
+  margin-top: 8px;
+  text-align: right;
+}
+
+p.home-quote span.quote-author {
+  font-size: 0.78em;
+  font-weight: 400;
+  color: var(--text-color-tertiary);
+  white-space: nowrap;
+}
+
+/* 作者名前的破折号由 CSS 补（JS 只写作者名） */
+p.home-quote span.quote-author::before {
+  content: "—— ";
+}
+
+/* ---------- 首页小标题 ---------- */
+h2.home-h2 {
+  margin: 34px 0 10px;
+  font-size: 1.05em;
+}
+
+/* ---------- 最新文章 ---------- */
+ul.home-posts {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul.home-posts li {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  align-items: baseline;
+  padding: 3px 0;
+}
+
+ul.home-posts time {
+  color: var(--text-color-tertiary);
+  font-size: 0.92em;
+  white-space: nowrap;
+}
+
+ul.home-posts a:visited {
+  color: var(--link-visited-color);
+}
+
+p.home-more {
+  margin: 12px 0 0;
+  font-size: var(--font-size-secondary);
+}
+
+/* ---------- 分类（标签）入口 ---------- */
+div.topic-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+div.topic-cloud a {
+  display: inline-block;
+  padding: 2px 11px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-color: var(--bg-color-secondary);
+  font-size: 0.9em;
+}
+
+div.topic-cloud a:hover {
+  text-decoration: none;
+  border-color: var(--link-color);
+}
+
+div.topic-cloud a:visited {
+  color: var(--link-visited-color);
+}
+
+div.topic-cloud span.topic-count {
+  margin-left: 5px;
+  font-size: 0.85em;
+  color: var(--text-color-tertiary);
+}

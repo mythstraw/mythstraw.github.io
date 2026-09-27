@@ -1,0 +1,77 @@
+{{/*
+   名句清单：首页「每日一句」的完整来源（数据都在 data/quotes.yaml，本文件只负责显示）。
+   用法：content/quotes.md 里写 {{< quote-list >}}。
+   当天那条由下面这段内联 JS 按「访客本地日期」标出来，算法与 layouts/index.html 完全一致
+   （距 2000-01-01 的天数 mod 名句条数）；样式也写在这里，只有用到本短代码的页面才会带上。
+*/}}
+{{ $quotes := site.Data.quotes }}
+{{ $count := len $quotes }}
+{{ if gt $count 0 }}
+<ol class="quote-list" id="quote-list">
+  {{ range $quotes }}
+  <li>
+    <span class="q-text">{{ .text }}</span><span class="q-author">{{ .author }}</span>
+  </li>
+  {{ end }}
+</ol>
+<style>
+  ol.quote-list {
+    padding-left: 1.5em;
+  }
+
+  ol.quote-list li {
+    margin: 10px 0;
+    line-height: 1.7;
+  }
+
+  ol.quote-list span.q-author {
+    margin-left: 8px;
+    font-size: 0.88em;
+    color: var(--text-color-tertiary);
+    white-space: nowrap;
+  }
+
+  /* 作者名前的破折号由 CSS 补（模板只写作者名） */
+  ol.quote-list span.q-author::before {
+    content: "—— ";
+  }
+
+  /* 当天那条：整体加粗，右边多一枚「今天」小标签 */
+  ol.quote-list li.is-today {
+    font-weight: 700;
+  }
+
+  ol.quote-list li.is-today span.q-author {
+    color: var(--text-color-secondary);
+  }
+
+  ol.quote-list span.q-today {
+    margin-left: 8px;
+    padding: 1px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background-color: var(--bg-color-secondary);
+    font-size: 0.78em;
+    font-weight: 400;
+    color: var(--text-color-secondary);
+    white-space: nowrap;
+  }
+</style>
+<script>
+  (function () {
+    var list = document.getElementById('quote-list');
+    if (!list || !list.children.length) { return; }
+    var n = list.children.length;
+    var now = new Date();
+    var days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(2000, 0, 1)) / 86400000);
+    var idx = ((days % n) + n) % n;
+    var li = list.children[idx];
+    if (!li) { return; }
+    li.className = 'is-today';
+    var badge = document.createElement('span');
+    badge.className = 'q-today';
+    badge.textContent = {{ T "quotes_today" | jsonify | safeJS }};
+    li.appendChild(badge);
+  })();
+</script>
+{{ end }}
