@@ -272,15 +272,18 @@ docker run --rm -it \
 skills/
 └── hugo-blog-manager/
     ├── SKILL.md
-    ├── scripts/
-    │   ├── check_env.sh
-    │   ├── init_site.sh
-    │   ├── install_theme.sh
-    │   ├── push_github.sh
-    │   └── setup_actions.sh
-    └── templates/
-        └── hugo-workflow.yaml
+    └── scripts/
+        ├── _common.ps1          # 公共函数：DryRun 预演、hugo 定位、UTF-8 写文件
+        ├── check_env.ps1        # 只读环境体检
+        ├── install_hugo.ps1     # 安装 hugo（本地 winget / Docker）
+        ├── init_site.ps1        # 新建站点 + git init
+        ├── install_theme.ps1    # 装主题并写入 theme:
+        ├── preview.ps1          # hugo server 本地预览
+        ├── push_github.ps1      # 提交并推送
+        └── setup_actions.ps1    # 生成 GitHub Actions 部署 workflow
 ```
+
+> 脚本全部是 PowerShell（Windows 原生，不依赖 WSL / Git Bash），并且**每个脚本都带 `-DryRun`**：只打印将要执行的命令，不做任何改动。这就是整个 Skill「确认式执行」的地基——先预演给用户看，用户点头了才实跑。
 
 ---
 
@@ -289,372 +292,324 @@ skills/
 ````markdown
 ---
 name: hugo-blog-manager
-description: 管理 Hugo 博客，支持从零部署到 GitHub Pages，以及安全地自定义修改页面。每个关键节点等待用户确认。
-version: 1.0.0
-author: foreveryang
+description: 管理 Hugo 博客：从零创建站点、选装主题、推送 GitHub 并配置 GitHub Actions 自动部署到 GitHub Pages；以及安全地修改现有站点的内容、Front Matter、布局、样式和配置（先给 diff 再逐步确认，hugo server 本地预览，构建或发布失败排错）。当用户说“部署 Hugo 博客”“新建 Hugo 站点”“修改 Hugo 页面”“改页脚”“加关于页”“博客发不出去/Pages 404”或提到 Hugo、GitHub Pages、hugo.yaml 时使用。安装 Hugo 本体必须先让用户在“本地安装 / Docker 安装”之间选择；主题必须在安装那一刻现场询问用户。
+metadata:
+  nanobot:
+    emoji: 📝
+    requires:
+      bins: ["git"]
 ---
 
 # Hugo 博客管理器
 
-本 Skill 提供两大工作流：
-- **流程 A：部署新博客** — 从零创建 Hugo 站点，推送到 GitHub，并配置 GitHub Actions 自动部署。
-- **流程 B：自定义修改** — 安全地修改现有 Hugo 项目的内容、布局、样式或配置，每步展示 diff 并等待确认。
+两个工作流：**流程 A 部署新博客**、**流程 B 安全修改现有站点**。
 
-所有操作均遵循“确认式执行”：nanobot 执行具体命令，但在每个关键节点暂停，等待用户明确确认。
+脚本目录（下文记作 `$S`，调用时替换成这个技能的真实路径）：
 
----
+```
+$S = <skills>\hugo-blog-manager\scripts
+```
 
-## 触发条件
+运行时的当前目录不是技能目录，**调用脚本必须用绝对路径**。
 
-- 当用户说“部署 Hugo 博客”、“新建 Hugo 站点”、“创建博客”时，进入 **流程 A**。
-- 当用户说“修改 Hugo 页面”、“自定义主题”、“改页脚”、“加关于页”、“编辑博客”时，进入 **流程 B**。
-- 若意图不明确，询问用户：“您是要部署新博客，还是修改现有博客？”
+## 两条硬性规则
 
----
+1. **Hugo 本体安装必须先问用户**。只能在用户明确选择「本地安装」（winget `Hugo.Hugo.Extended`）或「Docker 安装」（拉 hugo 镜像，用 `docker run` 跑）之后，才通过 `install_hugo.ps1` 执行。不要自动安装，不要替用户选。
+2. **主题必须现场问用户**。本技能不预设任何主题。走到装主题那一步时，先给 3~4 个候选（各自特点 + 仓库地址）让用户挑，选定后才跑 `install_theme.ps1`。
+
+## 确认式执行
+
+每个关键节点三步走：先跑 `-DryRun` → 把命令和影响讲给用户 → 用户明确同意后去掉 `-DryRun` 实跑。
 
 ## 全局前置检查
 
-无论进入哪个流程，首先执行：
-
-```bash
-bash scripts/check_env.sh
+```powershell
+powershell -NoProfile -File "$S\check_env.ps1"
 ```
 
-该脚本检查 `hugo` 和 `git` 是否已安装。若未安装，提示用户安装后重新开始。
+只读体检（hugo / git / docker / winget），退出码 `0`=就绪、`1`=hugo 缺失、`2`=git 缺失、`3`=两者都缺。hugo 缺失时**不要自己装**，转去问用户选哪种方式：
 
----
+```powershell
+powershell -NoProfile -File "$S\install_hugo.ps1" -Method Local  -DryRun   # 本地安装
+powershell -NoProfile -File "$S\install_hugo.ps1" -Method Docker -DryRun   # Docker 安装
+```
 
-### 流程 A：部署新博客
+装完重跑 `check_env.ps1` 确认；本地安装后若 `hugo` 仍不可见，提醒用户新开终端刷新 PATH。
 
-#### 节点 A1：项目文件夹位置
+## 流程 A：部署新博客
 
-1. 询问用户：
-   > “请输入博客项目文件夹的完整路径（例如 ~/my-blog）：”
-2. 等待用户回复，记录为 `$BLOG_PATH`。
-3. 执行：
-   ```bash
-   bash scripts/init_site.sh "$BLOG_PATH"
-   ```
-4. 输出：
-   > “节点 A1 完成：Hugo 站点已创建于 `$BLOG_PATH`。是否继续到节点 A2？(y/n)”
-5. 等待用户输入 `y` 或 `n`。若为 `n`，终止流程。
+按顺序走，每步先 DryRun 再等确认。
 
----
+1. **环境检查** —— 见上。
+2. **确定站点位置与标题** —— 问用户博客放哪个目录、叫什么名字（`baseURL` 后续可改）。
+3. **创建站点**：`init_site.ps1 -SitePath "<目录>" -Title "<标题>"` → `hugo new site --format yaml` + `git init -b main` + 写 `hugo.yaml` 与 `.gitignore`。目标目录必须为空，脚本拒绝覆盖已有内容。
+4. **选主题（必须先问用户）**：`install_theme.ps1 -SitePath "<目录>" -ThemeName <名> -ThemeRepo <仓库地址>`。默认走 `git submodule`（主题可后续升级）；GitHub 不可达时脚本会报错并提示改用 `-Mode Zip -ZipUrl <镜像 zip 地址>`。
+5. **本地预览，交给用户确认**：`preview.ps1 -SitePath "<目录>"`（`hugo server`，默认 http://127.0.0.1:1313/）。这是前台长进程，用后台会话跑；**界面效果必须由用户在浏览器确认**，不要用 HTTP 探测 localhost 代替。
+6. **建 GitHub 仓库**（让用户在网页端建，**不要勾 README / .gitignore**），然后推送：
+   `push_github.ps1 -SitePath "<目录>" -RepoUrl https://github.com/<user>/<repo>.git -Message "Initial commit: Hugo blog"`
+7. **配置自动部署**：`setup_actions.ps1 -SitePath "<目录>"` 写 `.github/workflows/hugo.yaml` 并推送。Hugo 版本自动取自本地 hugo 或 hugo 容器，也可 `-HugoVersion x.y.z` 指定。
+8. **收尾**：提醒用户去仓库 `Settings → Pages → Source` 选 **GitHub Actions**（一次性手动步骤），之后每次 push 自动发布。
 
-#### 节点 A2：主题样式
+## 流程 B：安全修改现有站点
 
-1. 询问用户：
-   > “请选择主题：
-   > 1. PaperMod（推荐）
-   > 2. LoveIt
-   > 3. Stack
-   > 4. 自定义（请输入 Git 仓库地址）”
-2. 等待用户选择，确定 `$THEME_NAME` 和 `$THEME_REPO`。
-3. 继续询问：
-   > “请输入站点标题：”
-   > “请输入 baseURL（格式：https://你的用户名.github.io/）：”
-4. 记录 `$SITE_TITLE` 和 `$BASE_URL`。
-5. 执行：
-   ```bash
-   bash scripts/install_theme.sh "$BLOG_PATH" "$THEME_NAME" "$THEME_REPO" "$SITE_TITLE" "$BASE_URL"
-   ```
-6. 输出：
-   > “节点 A2 完成：主题已安装并写入配置。是否继续到节点 A3？(y/n)”
-7. 等待确认。
+1. **先读再动**。定位改动点：`hugo.yaml`（站点配置）、`content/`（文章 / Front Matter）、`layouts/`（模板覆盖）、`assets/` 与 `static/`（样式、静态资源）、`themes/<主题>/`（主题源码）。
+2. **主题是外部代码（submodule），默认不改它内部文件**。优先在站点根目录放同名文件覆盖（Hugo 的 lookup order），例如 `layouts/partials/footer.html`。确实必须改主题内部时，先说明代价（升级会被覆盖，或需要 fork）再决定。
+3. **每处改动都是三步**：读原文 → 把 diff（改什么、为什么、影响哪些页面）给用户看 → 等确认 → 再改。一次只改一处，别攒一堆一起改。
+4. **改完必看**：`preview.ps1` 让用户在浏览器确认效果；改模板时可用 `-Drafts` 连草稿一起看。
+5. **用户认可后再提交**：`push_github.ps1 -SitePath "<目录>" -RepoUrl <origin> -Message "<改了什么>"`。
+6. **不可逆操作先备份**：删内容、换主题、改 `baseURL`、重写 git 历史之前，先复制目录或开新分支。
 
----
+### 常见排错
 
-#### 节点 A3：推送到 GitHub
+- **Pages 404 / 页面不更新**：仓库 `Settings → Pages → Source` 必须是 `GitHub Actions`；`baseURL` 与实际域名不一致时由 workflow 的 `--baseURL` 兜底。
+- **样式没生效**：核对主题的 `assets` / `static` 目录结构，以及 `hugo.yaml` 里的 `theme` 值与 `themes/` 下的目录名是否一致。
+- **构建失败**：看 Actions 日志；本地 hugo 版本与主题要求不匹配时，用 `setup_actions.ps1 -HugoVersion` 重新生成 workflow。
+- **CI 里主题目录是空的**：workflow 的 checkout 已带 `submodules: recursive`；若仍为空，确认 `.gitmodules` 已提交进仓库。
+- **用户站点仓库（`<user>.github.io`）**：`baseURL` 必须是根域名（如 `https://mythstraw.github.io/`）；私有仓库开 Pages 需付费，必须 public。
 
-1. 询问用户：
-   > “请输入 GitHub 仓库地址（例如 https://github.com/user/repo.git）：”
-2. 等待回复，记录 `$REPO_URL`。
-3. 执行：
-   ```bash
-   bash scripts/push_github.sh "$BLOG_PATH" "$REPO_URL"
-   ```
-4. 输出：
-   > “节点 A3 完成：代码已推送到 GitHub。是否继续到节点 A4？(y/n)”
-5. 等待确认。
+## Hugo 陷阱速查
 
----
+- `T` / `i18n` 返回值会被 HTML 转义 → 翻译串含 `<a>` 时必须 `| safeHTML`。
+- 模板内链接用 `.RelPermalink`；`relURL` 在带语言前缀时会重复加前缀。
+- 首页 `.Title` 为空 → 判断首页必须用 `.IsHome`。
+- front matter 不写 `slug` 时 Hugo 用**标题**做 URL（中文标题 → 百分号编码）→ 每篇显式写 `slug`。
+- `buildFuture=false`（默认）：`date` 写成未来时间会被整篇跳过。
+- 用 Docker 跑 hugo 必须把站点子目录挂成工作目录（挂整盘会报 "Unable to locate config file"）。
 
-#### 节点 A4：启用 GitHub Pages
+## 脚本清单
 
-1. 输出指引：
-   > “请打开以下链接，将 Source 改为 **GitHub Actions**：
-   > https://github.com/<你的用户名>/<仓库名>/settings/pages
-   > 完成后回复「已启用」。”
-2. 等待用户回复“已启用”。
-3. 收到后继续节点 A5。
-
----
-
-#### 节点 A5：配置 GitHub Actions 自动部署
-
-1. 询问用户：
-   > “请输入 Hugo 版本号（默认 0.147.9，可运行 `hugo version` 查看）：”
-2. 等待回复，记录 `$HUGO_VERSION`。
-3. 执行：
-   ```bash
-   bash scripts/setup_actions.sh "$BLOG_PATH" "$HUGO_VERSION"
-   ```
-4. 输出：
-   > “节点 A5 完成：GitHub Actions 自动部署已配置。
-   > 推送后 Actions 将自动构建并发布。流程结束。”
-
----
-
-### 流程 B：自定义修改
-
-#### 节点 B1：需求确认
-
-1. 询问用户：
-   > “请描述您要修改的内容（例如：修改页脚版权、添加关于页面、调整菜单等）：”
-2. 等待用户回复，记录需求 `$REQUIREMENT`。
-3. 确认：
-   > “您要修改的是：`$REQUIREMENT`。是否继续？(y/n)”
-4. 等待确认。
-
----
-
-#### 节点 B2：定位与 Diff
-
-1. 根据需求，确定需要修改的文件。原则：
-   - **内容**：`content/` 下的 Markdown 文件。
-   - **布局/模板**：`layouts/` 下的 HTML 文件。若主题中有同名文件，先复制到项目 `layouts/` 对应路径，再修改副本。
-   - **样式**：`static/css/` 下的 CSS 文件。
-   - **配置**：根目录的 `hugo.yaml`。
-2. 读取相关文件当前内容。
-3. 生成修改方案和 diff，展示给用户：
-   > “即将修改 `路径/文件`，变更如下：
-   >
-   > ```diff
-   > - 旧内容
-   > + 新内容
-   > ```
-   >
-   > 是否确认修改？(y/n)”
-4. 等待用户确认。若为 `n`，终止或重新调整。
-
----
-
-#### 节点 B3：写入与验证
-
-1. 用户确认后，执行修改（写入文件）。
-2. 运行构建验证：
-   ```bash
-   cd "$BLOG_PATH" && hugo --minify
-   ```
-3. 若构建失败：
-   - 报告错误信息。
-   - 询问用户是否回滚（`git checkout -- .`）或手动修复。
-4. 若构建成功：
-   > “本地构建通过。是否启动本地预览？(y/n)”
-5. 若用户选择预览，运行：
-   ```bash
-   cd "$BLOG_PATH" && hugo server -D
-   ```
-   并提示用户访问 `http://localhost:1313/` 查看效果。
-
----
-
-#### 节点 B4：提交推送
-
-1. 展示 `git diff` 摘要。
-2. 询问：
-   > “以上修改是否满意？确认后我将提交并推送到 GitHub。请回复提交信息（或直接回复「确认」使用默认信息）：”
-3. 等待用户输入。
-4. 执行：
-   ```bash
-   cd "$BLOG_PATH"
-   git add .
-   git commit -m "$COMMIT_MSG"
-   git push
-   ```
-5. 输出：
-   > “已推送。GitHub Actions 将自动构建并部署，约 1–2 分钟后博客更新。”
-
----
-
-### 安全与确认机制
-
-| 节点 | 确认方式 |
-| :--- | :--- |
-| A1 | 输入文件夹路径 → 执行后询问 `y/n` |
-| A2 | 选择主题 → 输入标题和 baseURL → 执行后询问 `y/n` |
-| A3 | 输入仓库地址 → 执行后询问 `y/n` |
-| A4 | 用户手动在 GitHub 设置 → 回复“已启用” |
-| A5 | 输入 Hugo 版本 → 执行完成，流程结束 |
-| B1 | 描述需求 → 确认需求 |
-| B2 | 展示 diff → 确认修改 |
-| B3 | 构建验证 → 可选本地预览 |
-| B4 | 展示 diff → 确认提交信息 → 推送 |
-
-**关键原则**：
-
-- 永远不要直接修改 `themes/` 目录，先复制到项目 `layouts/` 再改。
-- 任何写入前必须展示 diff 并获得用户确认。
-- 构建失败时不得推送，需先修复。
-- 大改前建议创建分支：`git checkout -b customize`。
+| 脚本 | 作用 | 关键参数 |
+| --- | --- | --- |
+| `check_env.ps1` | 只读环境体检 | `-Json` |
+| `install_hugo.ps1` | 安装 hugo（**须用户先选方式**） | `-Method Local\|Docker`、`-StartEngine` |
+| `init_site.ps1` | 新建站点 + git init + 配置 + .gitignore | `-SitePath`、`-Title`、`-BaseUrl`、`-LanguageCode` |
+| `install_theme.ps1` | 装主题并写入 `theme:`（**主题须现场问用户**） | `-ThemeName`、`-ThemeRepo`、`-Mode Submodule\|Zip` |
+| `preview.ps1` | `hugo server` 本地预览 | `-Port`、`-Drafts`、`-BindAddress` |
+| `push_github.ps1` | 提交并推送到 GitHub | `-RepoUrl`、`-Branch`、`-Message`、`-Rebase` |
+| `setup_actions.ps1` | 生成 GitHub Actions 部署 workflow | `-HugoVersion`、`-Branch`、`-NoPush` |
 ````
 
 ---
 
-### 🔧 脚本文件
+### 🔧 脚本关键片段
 
-#### `scripts/check_env.sh`
+为控制篇幅，下面是各脚本的关键部分（真代码节选，`# ...` 表示省略；完整脚本见文末下载）。
 
-```bash
-#!/bin/bash
-command -v hugo >/dev/null 2>&1 || { echo "❌ Hugo 未安装"; exit 1; }
-command -v git  >/dev/null 2>&1 || { echo "❌ Git 未安装"; exit 1; }
-echo "✅ 环境检查通过"
+#### `scripts/_common.ps1`
+
+这段是整个技能的核心：**本机装了 hugo 就直接跑，没装但 Docker 引擎在跑就用容器跑**——两种安装方式共用同一套脚本。
+
+```powershell
+# 有原生 hugo 就原生跑；没有原生 hugo 但 Docker 引擎在跑，就用容器跑
+function Invoke-Hugo {
+    param(
+        [Parameter(Mandatory = $true)][string]$SitePath,
+        [Parameter(Mandatory = $true)][string[]]$HugoArgs,
+        [string]$MountPath = '',
+        [string]$Image = 'hugomods/hugo:exts',
+        [string[]]$ExtraDockerArgs = @(),
+        [switch]$DryRun
+    )
+    $status = Get-HugoStatus
+    if ($status.Mode -eq 'native') {
+        $line = ('cd "{0}"; hugo {1}' -f $SitePath, ($HugoArgs -join ' '))
+        if ($DryRun) { Write-Output "DRY-RUN: $line"; return }
+        # ... 实跑，退出码非 0 就抛错
+    }
+    if ($status.Mode -eq 'docker') {
+        $mount = $MountPath; if (-not $mount) { $mount = $SitePath }
+        $src = ConvertTo-PosixPath $mount      # E:\myblog -> /e/myblog
+        $dkArgs = @('run', '--rm') + $ExtraDockerArgs + @('-v', "${src}:/src", '-w', '/src', $Image, 'hugo') + $HugoArgs
+        if ($DryRun) { Write-Output ('DRY-RUN: docker ' + ($dkArgs -join ' ')); return }
+        # ... 实跑，退出码非 0 就抛错
+    }
+    throw "hugo is not available: neither a native 'hugo' executable nor a running Docker engine was found. Run install_hugo.ps1 first (ask the user to choose Local or Docker)."
+}
 ```
 
-#### `scripts/init_site.sh`
+#### `scripts/check_env.ps1`
 
-```bash
-#!/bin/bash
-BLOG_PATH="$1"
-hugo new site "$BLOG_PATH" --format yaml
-cd "$BLOG_PATH" || exit 1
-git init
-echo "✅ 站点初始化完成"
+只读体检，靠**退出码**把结论告诉 agent：`0`=就绪、`1`=hugo 缺失、`2`=git 缺失、`3`=两者都缺。缺 hugo 时打印的是「去问用户选哪种方式」，而不是自己去装。
+
+```powershell
+$hugo   = Get-HugoStatus      # native / docker / none
+$git    = Get-GitExe
+$docker = Test-DockerEngine   # client / engine / version
+
+$missing = @()
+if ($hugo.Mode -eq 'none') { $missing += 'hugo' }
+if (-not $git)             { $missing += 'git' }
+
+# exit code: 0 ready, 1 hugo missing, 2 git missing, 3 both missing
+$exitCode = 0
+if ($missing -contains 'hugo') { $exitCode += 1 }
+if ($missing -contains 'git')  { $exitCode += 2 }
+
+if ($missing -contains 'hugo') {
+    Write-Output 'NEXT: hugo is missing. Do NOT install silently - ask the user to pick one:'
+    Write-Output '  A) local install  : powershell -NoProfile -File install_hugo.ps1 -Method Local    (winget Hugo.Hugo.Extended)'
+    Write-Output '  B) docker install : powershell -NoProfile -File install_hugo.ps1 -Method Docker   (needs Docker Desktop running)'
+}
 ```
 
-#### `scripts/install_theme.sh`
+#### `scripts/install_hugo.ps1`
 
-```bash
-#!/bin/bash
-BLOG_PATH="$1"
-THEME_NAME="$2"
-THEME_REPO="$3"
-SITE_TITLE="$4"
-BASE_URL="$5"
+两种安装方式（`-Method Local|Docker`），都要求用户先表态。装完自己复检一次，而不是假设成功。
 
-cd "$BLOG_PATH" || exit 1
-git submodule add "$THEME_REPO" "themes/$THEME_NAME"
+```powershell
+if ($Method -eq 'Local') {
+    $wgArgs = @('install', '--id', $WingetId, '-e', '--accept-source-agreements', '--accept-package-agreements')
+    if ($DryRun) { Write-Output ('DRY-RUN: {0} {1}' -f $winget, ($wgArgs -join ' ')); exit 0 }
+    & $winget @wgArgs
+    $after = Get-HugoStatus
+    if ($after.Mode -eq 'native') { Write-Output ("OK: hugo {0} -> {1}" -f $after.Version, $after.Exe); exit 0 }
+    # ... 仍不可见时给出提示（下载被墙、需刷新 PATH、或改用 Docker）
+}
 
-cat > hugo.yaml <<EOF
-baseURL: "$BASE_URL"
-languageCode: "zh-cn"
-title: "$SITE_TITLE"
-theme: "$THEME_NAME"
-EOF
-
-echo "✅ 主题 $THEME_NAME 安装完成"
+# Docker 方式：引擎没起时可加 -StartEngine，最多等 240 秒
+& $docker pull $Image
+& $docker run --rm $Image hugo version
 ```
 
-#### `scripts/push_github.sh`
+#### `scripts/init_site.ps1`
 
-```bash
-#!/bin/bash
-BLOG_PATH="$1"
-REPO_URL="$2"
+新建站点前的唯一硬校验：**目标目录必须是空的**，宁可报错也不碰已有内容。
 
-cd "$BLOG_PATH" || exit 1
-git add .
-git commit -m "Initial commit: Hugo blog"
-git remote add origin "$REPO_URL" 2>/dev/null || git remote set-url origin "$REPO_URL"
-git branch -M main
-git push -u origin main
+```powershell
+if (Test-Path -LiteralPath $sitePath) {
+    $entries = @(Get-ChildItem -LiteralPath $sitePath -Force | Where-Object { $_.Name -ne '.' })
+    if ($entries.Count -gt 0) {
+        Write-Fail "Target directory is not empty: $sitePath. Pick another path, or clean it up first (refusing to touch existing content)." 4
+    }
+}
 
-echo "✅ 推送完成"
+Invoke-Hugo -SitePath $parent -MountPath $parent -Image $Image -DryRun:$DryRun `
+    -HugoArgs @('new', 'site', $leaf, '--format', 'yaml')
+
+# 新站点没有需要保留的内容，直接写一份干净的 hugo.yaml（theme: 留到装主题那步再写）
+$config = @"
+baseURL: "$BaseUrl"
+languageCode: "$LanguageCode"
+title: "$Title"
+"@
+New-Utf8File -Path $configPath -Content $config      # UTF-8 无 BOM，避免中文标题乱码
 ```
 
-#### `scripts/setup_actions.sh`
+#### `scripts/install_theme.ps1`
 
-```bash
-#!/bin/bash
-BLOG_PATH="$1"
-HUGO_VERSION="$2"
+默认 `git submodule`（主题可后续升级）；`github.com` 不可达时不硬顶，改走 `-Mode Zip` 从镜像下载。
 
-cd "$BLOG_PATH" || exit 1
-mkdir -p .github/workflows
+```powershell
+# 先探活：不通就明确告诉用户「加速器没开」或「改用 -Mode Zip」
+$probe = & $git ls-remote $ThemeRepo HEAD 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Fail "Cannot reach $ThemeRepo" 3
+}
 
-cat > .github/workflows/hugo.yaml <<EOF
-name: Deploy Hugo site to Pages
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-defaults:
-  run:
-    shell: bash
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      HUGO_VERSION: $HUGO_VERSION
-    steps:
-      - name: Install Hugo CLI
-        run: |
-          wget -O \${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v\${HUGO_VERSION}/hugo_extended_\${HUGO_VERSION}_linux-amd64.deb \\
-          && sudo dpkg -i \${{ runner.temp }}/hugo.deb
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v5
-      - name: Build with Hugo
-        env:
-          HUGO_CACHEDIR: \${{ runner.temp }}/hugo_cache
-          HUGO_ENVIRONMENT: production
-        run: |
-          hugo --minify --baseURL "\${{ steps.pages.outputs.base_url }}/"
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./public
-  deploy:
-    environment:
-      name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-EOF
+& $git -C $sitePath submodule add $ThemeRepo "themes/$ThemeName"
+& $git -C $sitePath submodule update --init --recursive
 
-git add .github/workflows/hugo.yaml
-git commit -m "Add GitHub Actions workflow for auto deploy"
-git push
+# -Mode Zip 分支：下载 + 解压到 themes/<名>
+Invoke-WebRequest -Uri $ZipUrl -OutFile $tmpZip -UseBasicParsing -TimeoutSec 300
+Expand-Archive -LiteralPath $tmpZip -DestinationPath $tmpDir -Force
 
-echo "✅ GitHub Actions 配置完成"
+# 把 theme: 写进配置（已有就替换，没有就追加）
+if ($content -match '(?m)^\s*theme\s*[:=]') {
+    $newContent = [regex]::Replace($content, '(?m)^\s*theme\s*[:=].*$', $line)
+}
+New-Utf8File -Path $configPath -Content $newContent
+```
+
+#### `scripts/preview.ps1`
+
+本地预览。Docker 模式下有个坑：容器内得监听 `0.0.0.0`，端口只发布到宿主机回环地址，否则外面打不开。
+
+```powershell
+$status = Get-HugoStatus
+if ($status.Mode -eq 'none') {
+    Write-Fail "hugo is not available. Run check_env.ps1, then ask the user to choose Local or Docker install." 1
+}
+
+# 容器模式：容器内监听 0.0.0.0，端口发布在宿主机回环地址上
+$innerBind = $BindAddress
+$extra = @()
+if ($status.Mode -eq 'docker') {
+    $innerBind = '0.0.0.0'
+    $extra = @('-p', ("{0}:{1}:{1}" -f $BindAddress, $Port))
+}
+
+$hugoArgs = @('server', '--port', "$Port", '--bind', $innerBind)
+if ($Drafts) { $hugoArgs += '-D' }
+```
+
+#### `scripts/push_github.ps1`
+
+三道保险：身份没配不提交、工作区干净不算失败、远端已有提交时**默认中止**（要显式加 `-Rebase`）。
+
+```powershell
+# 1) git 身份没配就中止，绝不以未知作者提交
+if (-not $email -or -not $name) {
+    Write-Fail 'git user.name / user.email are not configured. Ask the user for them and re-run with -GitUserName / -GitUserEmail.' 4
+}
+
+# 2) 工作区干净就跳过 commit（不是报错）
+$status = (& $git -C $sitePath status --porcelain 2>$null)
+if ($status) {
+    Invoke-Git -GitArgs @('-C', $sitePath, 'add', '-A')
+    Invoke-Git -GitArgs @('-C', $sitePath, 'commit', '-m', $Message)
+}
+
+# 3) 远端已有提交时中止，除非显式 -Rebase
+$remoteHeads = (& $git ls-remote --heads origin $Branch 2>$null)
+if ($remoteHeads -and $LASTEXITCODE -eq 0) {
+    if (-not $Rebase) {
+        Write-Fail "Remote is not empty. Re-run with -Rebase to pull remote commits first, or push to another repo/branch." 4
+    }
+    Invoke-Git -GitArgs @('-C', $sitePath, 'pull', '--rebase', 'origin', $Branch)
+}
+
+Invoke-Git -GitArgs @('-C', $sitePath, 'push', '-u', 'origin', $Branch) -AllowFail
+```
+
+#### `scripts/setup_actions.ps1`
+
+Hugo 版本不写死：优先用 `-HugoVersion`，否则从本地 hugo 或 hugo 容器里探测，保证 CI 用和你本地一致的版本。
+
+```powershell
+if (-not $HugoVersion) {
+    $status = Get-HugoStatus
+    if ($status.Mode -eq 'native') {
+        $HugoVersion = Get-HugoVersionFromString -Text $status.Version
+    }
+    elseif ($status.Mode -eq 'docker') {
+        $raw = @(& $status.Exe run --rm $Image hugo version 2>$null) -join ' '
+        $HugoVersion = Get-HugoVersionFromString -Text $raw
+    }
+}
+
+# 模板里占位，再替换成真实版本号与分支，UTF-8 无 BOM 写出
+$workflow = $template.Replace('__HUGO_VERSION__', $HugoVersion).Replace('__BRANCH__', $Branch)
+New-Utf8File -Path $workflowPath -Content $workflow
+
+# 交给 push_github.ps1 提交推送（复用同一套身份/远端/分支保护）
+& (Join-Path $PSScriptRoot 'push_github.ps1') -SitePath $sitePath -RepoUrl $remote -Message $Message
 ```
 
 ---
 
 ### 🚀 使用方式
 
-1. 将 `hugo-blog-manager` 文件夹放入 nanobot 的 `skills/` 目录。
-2. 赋予脚本执行权限：
-   ```bash
-   chmod +x skills/hugo-blog-manager/scripts/*.sh
-   ```
-3. 对 nanobot 说：
+1. 解压后把整个 `hugo-blog-manager` 文件夹放进 nanobot 工作区的 `skills/` 目录（Windows 下不用 `chmod`，PowerShell 脚本直接就能跑）。
+2. 对 nanobot 说：
    - **部署新博客**：“部署 Hugo 博客”
    - **修改现有博客**：“修改 Hugo 页脚”、“添加关于页面”等
-4. nanobot 会自动加载 Skill，按对应流程逐步询问并执行，每个节点等待你的确认。
+3. nanobot 会自动加载 Skill，按对应流程逐步询问并执行——每个节点都是「先 `-DryRun` 给你看命令 → 你确认 → 才真正执行」。
 
 ---
 
 ### 📦 下载这个 Skill
 
-本文第四节里的脚本是最早的 bash 版；我现在实际在用的是重写后的 PowerShell 版（Windows 原生，不依赖 WSL / Git Bash，每个脚本都带 `-DryRun` 预演），已经打包好：
+上面第四节贴的只是节选，完整脚本（7 个脚本 + 公共函数，含全部边界检查、退出码与排错提示）打包在这里：
 
 **[⬇️ 下载 hugo-blog-manager.zip](https://mythstraw.github.io/downloads/hugo-blog-manager.zip)**
 
