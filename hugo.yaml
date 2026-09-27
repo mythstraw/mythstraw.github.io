@@ -115,4 +115,9 @@ markup:
   # 正文怎么写就怎么显示，源文件不用为了排版额外加空行。
   goldmark:
     renderer:
+      # 允许正文里的原始 HTML 生效（默认会被丢掉并留下 <!-- raw HTML omitted -->）。
+      # 用途：在标题里写 <mark>xxx</mark> 之类行内标签 —— 标题里不能用短代码，
+      # 否则 Hugo 生成右侧目录时拿到的是替换前的占位符（会显示成
+      # HAHAHUGOSHORTCODE… 乱码），这也是本项必须开 unsafe 的原因。
+      unsafe: true
       hardWraps: true

@@ -7,12 +7,14 @@ description: "嗨！这里是 ForeverYang 的博客。"
 
 # 关于我
 
-### 嗨！👋 这里是 {{< mark >}}ForeverYang{{< /mark >}} 的个人博客。{#hi-foreveryang}
+## 嗨！👋 这里是 <mark>ForeverYang</mark> 的个人博客。{#hi-foreveryang}
 
 我是一名**家装设计师**，习惯在图纸上构建空间；我也是一名 **3D 打印玩家**，喜欢把虚拟的想象打印成真实的触感。我对这个世界充满好奇，尤其是**科技**带来的一切变革。
 
 目前，我正以 **AI 新手**的身份，一头扎进人工智能的浪潮里。
-带着一点 Python 基础，我折腾过 Codex、OpenCode、NanoBot、WorkBuddy、n8n等工具。从写第一个 AI Skill，到搭建网页端 App，再到构建这个个人网站……我享受这种“一点点尝试，一点点进步”的养成感。
+带着一点 Python 基础，我折腾过 Codex、OpenCode、NanoBot、WorkBuddy、n8n等工具。从写第一个 AI Skill，到搭建网页端 App，再到构建这个个人网站……
+
+我享受这种“一点点尝试，一点点进步”的养成感。
 在这里，我会毫无保留地分享我的探索过程，希望能为你带来一点微光。
 
 在代码与设计之外，我的生活还有两个避风港：

@@ -1,4 +1,9 @@
 {{- /* 行内高亮短代码：{{< mark >}}文字{{< /mark >}} → <mark>文字</mark>
        Goldmark 默认丢弃 Markdown 正文里的原始 HTML，所以用短代码包一层。
-       注意：模板末尾不能留空行，否则输出的换行会插进标题/段落里。 */ -}}
+       注意两点：
+         1) 模板末尾不能留空行，否则输出的换行会插进标题/段落里；
+         2) 不要在标题（#/##/###）里使用 —— Hugo 生成右侧目录时拿到的是
+            短代码占位符，会显示成 HAHAHUGOSHORTCODE… 乱码。
+            标题里要高亮就直接写原始 <mark>xxx</mark>（站点已开
+            markup.goldmark.renderer.unsafe）。 */ -}}
 <mark>{{ .Inner }}</mark>
