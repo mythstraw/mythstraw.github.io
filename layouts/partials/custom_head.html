@@ -47,6 +47,10 @@
   :root {
     --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
     --font-secondary: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Cascadia Mono", "Microsoft YaHei", monospace;
+
+    /* 右侧目录空闲时的透明度：0 = 完全隐形（鼠标移过去才出现），
+       0.28 = 默认值（留一列淡淡的提示），1 = 永远常亮（主题原本的行为） */
+    --toc-idle-opacity: 0.28;
   }
 
   /* 1) 浅色：暖白纸面 + 靛蓝链接 */
@@ -203,6 +207,22 @@
   button.theme-toggle .theme-toggle-icon {
     margin-right: 4px;
   }
+
+  /* 右侧目录（TOC）自动隐藏：
+     主题默认就把目录链接的文字设成 transparent，平时只留一列小横线，但那列
+     横线会一直挂在右边。这里让整块目录在空闲时淡下去，鼠标移进右侧目录区域
+     或向下滚动时才浮出来；空闲透明度由 --toc-idle-opacity 控制（见上面 :root）。
+     窄屏（≤800px）主题本来就会隐藏目录，不受影响。
+     滚动唤醒的具体行为在文件末尾的 script 里。 */
+  div.toc {
+    opacity: var(--toc-idle-opacity);
+    transition: opacity 0.25s ease;
+  }
+
+  div.toc:hover,
+  div.toc.toc-awake {
+    opacity: 1;
+  }
 </style>
 
 {{/* 代码块语法高亮配色（class 模式，见 hugo.yaml 的 markup.highlight.noClasses）。
@@ -222,3 +242,32 @@
 
 {{/* 首页专用样式：名句卡片、最新文章列表、分类入口 */}}
 {{ if .IsHome }}{{ with resources.Get "css/home.css" }}<style>{{ .Content | safeCSS }}</style>{{ end }}{{ end }}
+
+<script>
+  /* 右侧目录的「自动隐藏」行为：
+     - 空闲时按 --toc-idle-opacity 淡下去（纯 CSS）
+     - 鼠标停在目录区域时恢复常亮（纯 CSS :hover）
+     - 向下滚动 / 跳转锚点时浮出，停止滚动 1.2 秒后重新淡下去（下面这段）
+     注意：这段 script 在 <head> 里，执行时 <body> 还没解析，
+     所以必须等 DOMContentLoaded 之后再去找 div.toc，否则查不到就退出了。 */
+  (function () {
+    function init() {
+      var toc = document.querySelector('div.toc');
+      if (!toc) return;
+      var timer = null;
+      function sleepSoon() {
+        clearTimeout(timer);
+        timer = setTimeout(function () { toc.classList.remove('toc-awake'); }, 1200);
+      }
+      window.addEventListener('scroll', function () {
+        toc.classList.add('toc-awake');
+        sleepSoon();
+      }, { passive: true });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
