@@ -649,3 +649,13 @@ echo "✅ GitHub Actions 配置完成"
    - **部署新博客**：“部署 Hugo 博客”
    - **修改现有博客**：“修改 Hugo 页脚”、“添加关于页面”等
 4. nanobot 会自动加载 Skill，按对应流程逐步询问并执行，每个节点等待你的确认。
+
+---
+
+### 📦 下载这个 Skill
+
+本文第四节里的脚本是最早的 bash 版；我现在实际在用的是重写后的 PowerShell 版（Windows 原生，不依赖 WSL / Git Bash，每个脚本都带 `-DryRun` 预演），已经打包好：
+
+**[⬇️ 下载 hugo-blog-manager.zip](https://mythstraw.github.io/downloads/hugo-blog-manager.zip)**
+
+下载后解压，把整个 `hugo-blog-manager` 文件夹放进 nanobot 工作区的 `skills/` 目录，重启会话即可自动加载。
