@@ -80,7 +80,7 @@ Hugo 是一个用 Go 语言编写的静态网站生成器（SSG），自 2013 �
    ```
 
 3. **选择并安装主题**  
-   Hugo 有丰富的主题生态，中文友好的热门主题包括 **PaperMod**、**LoveIt**、**hugo-theme-stack** 等。以 PaperMod 为例，通过 Git 子模块安装：
+   Hugo 有丰富的主题生态，官方主题库 [themes.gohugo.io](https://themes.gohugo.io/) 收录了 900+ 个主题，可以按标签、功能、语言筛选，先逛一逛再决定用哪个。中文友好的热门主题包括 **PaperMod**、**LoveIt**、**hugo-theme-stack** 等。以 PaperMod 为例，通过 Git 子模块安装：
    ```bash
    git submodule add https://github.com/adityatelange/hugo-PaperMod themes/PaperMod
    ```
@@ -618,3 +618,7 @@ New-Utf8File -Path $workflowPath -Content $workflow
 **[⬇️ 下载 hugo-blog-manager.zip](https://mythstraw.github.io/downloads/hugo-blog-manager.zip)**
 
 下载后解压，把整个 `hugo-blog-manager` 文件夹放进 nanobot 工作区的 `skills/` 目录，重启会话即可自动加载。
+
+---
+
+> 📄 **延伸阅读**：这篇讲的是「为什么这么搭」——Hugo 是什么、和其它静态站点生成器的差别、Actions 自动部署的原理。另一篇 [《GitHub 部署自己的个人博客网站》](/p/github-deploy-personal-blog/) 是一份更完整的实操记录：从建仓库、配 Actions 到绑定自定义域名，可以对照着看。
