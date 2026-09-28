@@ -46,6 +46,9 @@ ignoreErrors: ["error-disable-taxonomy"]
 permalinks:
   blog: "/p/:slug"
   tags: "/blog/:slug"
+  # 文章分类（「🛸 AI科技」「📚 阅读笔记」）的归档页：/category/ai-tech/、/category/reading-notes/
+  # :slug 取的是分类 key（文章 Front Matter 里 categories 的值），中文标题不会进 URL
+  categories: "/category/:slug"
 
 params:
   # 用于 Hugo 内置 opengraph 模板的 site_name

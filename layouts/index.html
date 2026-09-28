@@ -1,17 +1,25 @@
 {{/*
-   站点级覆盖：theme 的 layouts/index.html（主题版只有一行 {{ .Content }}）。
-   首页现在是三块：
-     1) 每日一句：纯粗体文字，没有卡片、没有按钮；整块居中（宽度 fit-content + 左右 auto 边距），
-        作者在名句下面另起一行、右对齐到名句右侧（样式都在 assets/css/home.css）。
-        Hugo 构建时先渲染一条（无 JS 也能看），再由下面这段内联 JS 按「访客本地日期」换成当天那条 ——
-        纯静态站点不会自己每天重构，所以真正的「每天不一样」是前端完成的
-        （Hugo 与 JS 用同一套算法，日期相同就不会闪）。
-      2) 最新文章：blog 区最新的 5 篇，普通无序列表（只列标题，不带日期，也没有「全部文章」入口）。
-       3) 分类入口：标签云，点进去就是该标签的文章列表。
-    两个小标题前的小图标不在这个文件里 —— 它们是 CSS 装饰（::before）：
-    想换图标 / 去掉图标，改 assets/css/home.css 里的 h2.home-h2-posts 与 h2.home-h2-topics。
-   名句库 data/quotes.yaml（单独一份文档，顺序即轮换顺序；想通读全表看 /quotes/ 页面）；
-   首页样式 assets/css/home.css；文案 i18n/zh-cn.toml。
+    站点级覆盖：theme 的 layouts/index.html（主题版只有一行 {{ .Content }}）。
+    首页现在是四块：
+      1) 每日一句：纯粗体文字，没有卡片、没有按钮；整块居中（宽度 fit-content + 左右 auto 边距），
+         作者在名句下面另起一行、右对齐到名句右侧（样式都在 assets/css/home.css）。
+         Hugo 构建时先渲染一条（无 JS 也能看），再由下面这段内联 JS 按「访客本地日期」换成当天那条 ——
+         纯静态站点不会自己每天重构，所以真正的「每天不一样」是前端完成的
+         （Hugo 与 JS 用同一套算法，日期相同就不会闪）。
+      2) 置顶文章：与「文章分类」无关，只按标签走 —— 列 tags 里含 "推荐" 的文章，按日期倒序，
+         普通无序列表（只列标题，不带日期，也没有「全部文章」入口）。
+         置顶某篇 → 在该文 Front Matter 的 tags 里加 "推荐"；撤下 → 删掉这个标签。
+         一篇都没有时显示占位文案（i18n 的 no_pinned_posts），不留空块。
+         推荐标签同时也是普通标签，所以标签云与 /blog/推荐/ 归档页里都能看到它。
+      3) 文章分类：data/categories.yaml 里每个分类各占一节，长相与「置顶文章」完全一致
+         （小标题 + 只列标题的无日期列表），分类名点进去是该分类的归档页 /category/<key>/。
+         首页没有「文章分类」这种总标题，分类名本身就是小标题。
+      4) 标签入口：标签云，点进去就是该标签的文章列表。
+     小标题前的小图标不在这个文件里 —— 它们是 CSS 装饰（::before）：
+     想换图标 / 去掉图标，改 assets/css/home.css 里的 h2.home-h2-pinned 与 h2.home-h2-topics
+     （分类那节不配图标，小标题的 emoji 来自 data/categories.yaml 的 name）。
+    名句库 data/quotes.yaml（单独一份文档，顺序即轮换顺序；想通读全表看 /quotes/ 页面）；
+    首页样式 assets/css/home.css；文案 i18n/zh-cn.toml。
 */}}
 {{ define "main" }}
 {{ $quotes := site.Data.quotes }}
@@ -45,15 +53,45 @@
   </script>
   {{ end }}
 
-  <h2 class="home-h2 home-h2-posts">{{ T "home_latest_posts" }}</h2>
-  {{ $posts := first 5 (where .Site.RegularPages "Section" "blog").ByDate.Reverse }}
+  {{/* 置顶文章：靠「推荐」标签驱动，模板里不写死标题清单，也不用分类。
+       site.Taxonomies.tags 的键就是标签名本身（中文标签键名不变，英文标签会被转小写），
+       所以 "推荐" 直接查得到；没有这个标签时 $pinned 为空 → 走 else 分支显示占位文案。 */}}
+  {{ $pinned := index site.Taxonomies.tags "推荐" }}
+  <h2 class="home-h2 home-h2-pinned">{{ T "home_pinned_posts" }}</h2>
   <ul class="home-posts">
-    {{ range $posts }}
+    {{ with $pinned }}
+    {{ range .Pages.ByDate.Reverse }}
     <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+    {{ end }}
     {{ else }}
-    <li>{{ T "no_posts" }}</li>
+    <li>{{ T "no_pinned_posts" }}</li>
     {{ end }}
   </ul>
+
+  {{/* 文章分类：分类清单与显示名写在 data/categories.yaml（顺序 = 显示顺序）。
+        每个分类长成一节「置顶文章」的样子：小标题（分类名本身，链到归档页）
+        + 只列标题的无日期列表。没有外层总标题，也没有「N 篇」计数，
+        小标题的图标直接用 data/categories.yaml 里 name 自带的 emoji。
+        每节按日期倒序取前 5 篇；归档页标题在 content/categories/<key>/_index.md 里，
+        两处名字要保持一致。 */}}
+  {{ with site.Data.categories }}
+  {{ range . }}
+  {{ $key := .key }}
+  {{ $term := index site.Taxonomies.categories $key }}
+  <h2 class="home-h2 home-h2-cat">
+    <a href="{{ if $term }}{{ $term.Page.RelPermalink }}{{ else }}{{ printf "/category/%s/" $key | relURL }}{{ end }}">{{ .name }}</a>
+  </h2>
+  <ul class="home-posts">
+    {{ with $term }}
+    {{ range first 5 .Pages.ByDate.Reverse }}
+    <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+    {{ end }}
+    {{ else }}
+    <li class="home-cat-empty">{{ T "no_posts" }}</li>
+    {{ end }}
+  </ul>
+  {{ end }}
+  {{ end }}
 
   {{ with .Site.Taxonomies.tags }}
   <h2 class="home-h2 home-h2-topics">{{ T "home_topics" }}</h2>

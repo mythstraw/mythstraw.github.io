@@ -51,15 +51,15 @@ h2.home-h2 {
 /* 小标题前的装饰图标：用 CSS 生成（不在正文文本里），复制文字时不会带上；
    想换图标只改下面两行的 content，想去掉图标就整段删掉。
    图标用系统彩色 emoji 字体渲染，不额外加载任何图片。 */
-h2.home-h2-posts::before {
-  content: "📰 ";
+h2.home-h2-pinned::before {
+  content: "❤️ ";
 }
 
 h2.home-h2-topics::before {
   content: "🏷️ ";
 }
 
-/* ---------- 最新文章（普通无序列表：只列标题，不带日期） ---------- */
+/* ---------- 置顶文章（普通无序列表：只列标题，不带日期） ---------- */
 ul.home-posts {
   list-style-type: disc;
   padding-left: 1.5em;
@@ -72,6 +72,24 @@ ul.home-posts li {
 
 ul.home-posts a:visited {
   color: var(--link-visited-color);
+}
+
+/* ---------- 文章分类（首页每个分类 = 一节「置顶文章」的样子） ----------
+   小标题就是分类名本身，点进去是该分类的归档页 /category/<key>/；
+   这里不配图标 —— 图标来自 data/categories.yaml 的 name（名字里自带 emoji）。
+   字号/间距/颜色沿用上面的 h2.home-h2，与「置顶文章」那一节保持一致。 */
+h2.home-h2-cat a {
+  color: inherit;
+}
+
+h2.home-h2-cat a:hover {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+ul.home-posts li.home-cat-empty {
+  color: var(--text-color-tertiary);
 }
 
 /* ---------- 分类（标签）入口 ---------- */

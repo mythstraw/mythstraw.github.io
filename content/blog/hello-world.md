@@ -7,6 +7,9 @@ description: "博客搭起来了。这篇文章说明站点的结构，也是一
 tags: [
     "随笔",
 ]
+categories: [
+    "other",
+]
 ---
 
 博客搭起来了 🎉

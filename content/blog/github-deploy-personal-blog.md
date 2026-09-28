@@ -7,6 +7,10 @@ tags: [
     "Hugo",
     "GitHub",
     "Cloudflare",
+    "推荐",
+]
+categories: [
+    "ai-tech",
 ]
 ---
 

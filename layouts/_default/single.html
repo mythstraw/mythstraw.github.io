@@ -1,0 +1,153 @@
+{{/*
+    站点级覆盖：theme 的 layouts/_default/single.html
+    改动：
+      1) 文章正文与标签之后，加一个「查看所有文章」按钮，跳回文章列表页 /blog/
+         （文案在 i18n/zh-cn.toml 的 view_all_posts，样式在 partials/custom_head.html
+          的 a.all-posts-btn）。只加在 blog 类型的文章页上，
+         关于我 / 工具推荐 / 名句库这些普通页面不显示。
+      2) 标题下面那行日期右边显示所属分类（span.post-cats，样式在 partials/custom_head.html）；
+      3) 其余逻辑与主题一致（标题只在 blog 类型且未挂菜单时渲染、标签、点赞脚本、
+         右侧目录），主题升级后如有多余改动请对比 themes/hugo-bearneo/layouts/_default/single.html。
+*/}}
+{{ define "main" }}
+{{ if eq .Type "blog" }}
+{{ if not .Params.menu }}
+<h1>{{ .Title }}</h1>
+{{ if .Date }}
+<p>
+  <i>
+    <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+      {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
+    </time>
+  </i>
+  {{/* 所属分类跟着日期显示（分类名点在归档页 /category/<key>/）。
+       分类只写在 blog 文章的 Front Matter 里，用 .GetTerms 取；没有分类的页面不显示。 */}}
+  {{ with (.GetTerms "categories") }}
+  <span class="post-cats">
+    {{ range . }}<a href="{{ .Permalink }}">{{ .LinkTitle }}</a>{{ end }}
+  </span>
+  {{ end }}
+</p>
+{{ end }}
+{{ end }}
+{{ end }} 
+
+<content> {{ .Content }} </content>
+
+<p>
+  {{ range (.GetTerms "tags") }}
+  <a href="{{ .Permalink }}">#{{ .LinkTitle }}</a>
+  {{ end }}
+</p>
+
+{{/* 文章末尾的「查看所有文章」链接：回到博客列表页（/blog/），整行靠右。
+     列表页地址取自站点里的 blog 分区，取不到时回落到首页。 */}}
+{{ if eq .Type "blog" }}
+<div class="all-posts-link">
+  <a class="all-posts-text" href="{{ with .Site.GetPage "/blog" }}{{ .RelPermalink }}{{ else }}{{ .Site.Home.RelPermalink }}{{ end }}">{{ T "view_all_posts" }}</a>
+</div>
+{{ end }}
+
+{{ $upvoteEnabled := .Site.Params.upvote }}
+{{ if isset .Params "upvote" }}{{ $upvoteEnabled = .Params.upvote }}{{ end }}
+{{ if and $upvoteEnabled .Site.Params.upvoteURL }}
+<div class="upvote-container">
+<small class="upvote">
+  <button class="upvote-btn" id="upvote-btn" aria-label="Upvote this post" aria-pressed="false">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+    <polyline points="17 11 12 6 7 11"></polyline>
+    <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+    <span class="upvote-count" id="upvote-count">0</span>
+  </button>
+</small>
+</div>
+
+<script>
+  let hasUpvoted = false;
+  let upvoteBtn;
+  let upvoteCount;
+  {{ $kudosEntity := strings.Trim .RelPermalink "/" }}
+  {{ if eq $kudosEntity "" }}{{ $kudosEntity = "home" }}{{ end }}
+  const entity = {{ replace $kudosEntity "/" ":" | jsonify | safeJS }};
+  const upvoteBaseUrl = {{ .Site.Params.upvoteURL | jsonify | safeJS }}.replace(/\/+$/, '');
+
+  function upvoteUrl(action = '') {
+    return `${upvoteBaseUrl}/${encodeURIComponent(entity)}${action}`;
+  }
+
+  async function requestKudos(url, options) {
+    const response = await fetch(url, options);
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error(`Kudos request failed (${response.status})`);
+    }
+    if (!response.ok) {
+      throw new Error(data.error ?? `Kudos request failed (${response.status})`);
+    }
+    return data;
+  }
+
+  function renderUpvote({ count, hasKudos }) {
+    upvoteCount.innerText = count;
+    hasUpvoted = hasKudos;
+    upvoteBtn.classList.toggle('upvoted', hasUpvoted);
+    upvoteBtn.setAttribute('aria-pressed', String(hasUpvoted));
+    upvoteBtn.setAttribute('aria-label', hasUpvoted ? 'Remove your upvote' : 'Upvote this post');
+  }
+
+  // Read the public count and this visitor's state separately so the count
+  // remains cacheable at the Kudos API.
+  document.addEventListener('DOMContentLoaded', function() {
+    upvoteBtn = document.getElementById('upvote-btn');
+    upvoteCount = document.getElementById('upvote-count');
+    loadUpvote();
+
+    upvoteBtn.addEventListener('click', toggleUpvote);
+  });
+
+  async function loadUpvote() {
+    try {
+      const [count, status] = await Promise.all([
+        requestKudos(upvoteUrl()),
+        requestKudos(upvoteUrl('/kudos')),
+      ]);
+      renderUpvote({ count: count.count, hasKudos: status.hasKudos });
+    } catch (error) {
+      console.error('Failed to load upvote:', error);
+    }
+  }
+
+  async function toggleUpvote() {
+    upvoteBtn.disabled = true;
+
+    try {
+      const state = await requestKudos(upvoteUrl('/kudos'), {
+        method: hasUpvoted ? 'DELETE' : 'POST',
+      });
+      renderUpvote(state);
+    } catch (error) {
+      console.error('Failed to update upvote:', error);
+    } finally {
+      upvoteBtn.disabled = false;
+    }
+  }
+</script>
+{{ end }}
+
+<!-- Place the TOC at the end to ensure the article content loads first. -->
+{{ $tocEnabled := default .Site.Params.toc .Params.toc }}
+{{ if $tocEnabled }} 
+<div class="toc">
+{{ partial "toc.html" . }}
+</div>
+{{ end }}
+
+{{/* Load Mermaid only when this page contains Mermaid diagrams. */}}
+{{ if .Params.mermaid }}
+{{ partial "mermaid.html" . }}
+{{ end }}
+
+{{ end }}

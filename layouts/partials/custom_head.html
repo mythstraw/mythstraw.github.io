@@ -138,6 +138,18 @@
     font-family: var(--font-primary);
   }
 
+  /* 文章页顶部日期右边的所属分类（由 layouts/_default/single.html 输出）：
+     跟前一个元素（日期）拉开一点距离，前面加个小圆点做分隔。 */
+  span.post-cats {
+    margin-left: 10px;
+    font-size: 0.9em;
+  }
+
+  span.post-cats::before {
+    content: "· ";
+    color: var(--text-color-tertiary);
+  }
+
 /* 代码块内层 code 透明，露出外层 pre 的底色（避免主题给 code 设的底色盖住高亮底色） */
   div.highlight pre code {
     background-color: transparent;
@@ -240,6 +252,28 @@
   div.toc:hover,
   div.toc.toc-awake {
     opacity: 1;
+  }
+
+  /* 文章末尾的「查看所有文章」链接（layouts/_default/single.html，在标签下面）：
+     跟正文里的普通链接一样是纯文字链接（无边框、无底色），整行靠右；
+     颜色走配色变量，浅色/深色两态都成立，悬停加下划线。 */
+  div.all-posts-link {
+    margin-top: 28px;
+    text-align: right;
+  }
+
+  a.all-posts-text,
+  a.all-posts-text:visited {
+    color: var(--link-color);
+    font-size: 0.95rem;
+    text-decoration: none;
+  }
+
+  a.all-posts-text:hover,
+  a.all-posts-text:focus {
+    color: var(--link-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 </style>
 

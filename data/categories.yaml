@@ -1,0 +1,22 @@
+# 首页「文章分类」区块的数据源（layouts/index.html 读它渲染）。
+# 列表顺序 = 首页显示顺序；不在这里的分类不会出现在首页。
+#
+# key：必须与文章 Front Matter 里 categories 的值完全一致（用 ASCII，因为它同时决定
+#      归档页 URL：/category/<key>/）。给文章归类就是往 Front Matter 里加：
+#        categories: [
+#            "ai-tech",
+#        ]
+#      没写 categories 的文章不会出现在首页分类区块里。
+# name：首页显示名，可带 emoji；归档页标题在 content/categories/<key>/_index.md 里，
+#      两处名字保持一致，首页与归档页看起来才是一回事。
+#
+# 新增一个分类的步骤：① 这里加一条 → ② 建 content/categories/<key>/_index.md → ③ 给文章加 categories。
+
+- key: "ai-tech"
+  name: "🛸 AI科技"
+
+- key: "reading-notes"
+  name: "📚 阅读笔记"
+
+- key: "other"
+  name: "🗂️ 其他"

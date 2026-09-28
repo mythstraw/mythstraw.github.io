@@ -6,6 +6,10 @@ description: "从零把博客搭起来：Hugo 是什么、和 Jekyll/Hexo 的差
 tags: [
     "Hugo",
     "GitHub",
+    "推荐",
+]
+categories: [
+    "ai-tech",
 ]
 ---
 
