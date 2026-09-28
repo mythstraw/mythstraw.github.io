@@ -1,0 +1,195 @@
+/* ============================================================
+   博客列表样式（assets/css/blog-cards.css）
+
+   作用页面：/blog/、分类归档 /category/<key>/、标签页 /blog/<tag>/
+   —— 三种页面都由 layouts/_default/list.html 渲染，结构也定义在那里。
+
+   版面（经典模式的顺序：年份 → 文章 → 标签，只是后两块各成一张卡片）：
+     · 文章列表卡片：一年一张（div.post-year-card），年份就是卡片标题
+       （h3.post-card-title，纯文字、16px，= 规范里的卡片标题字号）；
+       卡片里是这一年的文章列表（ul.post-list > li.post-row），
+       外观与首页「置顶文章 / 文章分类」用的 ul.home-posts 统一：
+       带圆点、只列「日期 + 标题」，行与行之间不画分割线、右侧也没有分类标签
+       （用户 2026-09-29 定：去掉分割线与分类标签，照首页列表的样子统一）。
+       标题就是普通链接 —— 颜色、已访问色、hover 下划线全交给主题的 a 规则
+       （见 themes/hugo-bearneo/layouts/partials/style.html），
+       所以这里不再给标题指定颜色与字重。
+     · 页面最底部的标签云收进另一张卡片（div.post-tag-card），不写标题文字。
+
+   尺寸与配色的取值（Design Tokens）统一放在 assets/css/cards.css：
+   圆角、阴影、内边距、卡片间距、分割线、四色与 tint 都在那里，本文件只用不定义，
+   这样列表页的卡片和首页、文章页、「工具推荐 / 关于我」几处的卡片是同一套。
+   文字层级不另立变量，直接复用站点既有的 --text-color-*，明暗切换与全站一致。
+   （四色 --cat-* 列表页现在用不到了，首页分类小标题等处另有用法。）
+   ============================================================ */
+
+/* 卡片取值（--card-r / --card-pad / --card-gap / --card-bg / --shadow-card /
+   --card-divider / --cat-* 等）全部来自 assets/css/cards.css 的设计 token 段，
+   本文件只用不定义；两个文件都由 custom_head.html 加载，列表页一定拿得到。 */
+
+/* ---- 卡片容器：一年一张卡片，竖向排开、等距 ---- */
+div.blog-posts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+}
+
+/* ---- 卡片本体：年份卡片与底部标签卡片共用一套外观 ---- */
+div.post-year-card,
+div.post-tag-card {
+  padding: var(--card-pad);
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-r);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .18s ease;
+}
+
+div.post-year-card:hover,
+div.post-tag-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* 底部标签卡片在文章列表之外，自己补上卡片间距 */
+div.post-tag-card {
+  margin-top: var(--card-gap);
+}
+
+/* ---- 列表上方的工具条：文章篇数 + 放大镜 + 搜索框，同在一张卡片里 ----
+   卡片外观（白底/圆角/描边/阴影/内边距）来自 assets/css/cards.css 的 div.page-card，
+   这里只排版式：三个元素从左到右紧挨着排 —— 篇数、放大镜图标、搜索框
+   （用户 2026-09-29 定：搜索框贴着篇数放，中间用放大镜做引导）。
+   搜索框的高度与篇数那行文字等高，所以整条工具条看上去就是一行。
+   窄屏放不下时「放大镜 + 搜索框」换到第二行，仍从左端起。
+   上边距 34px 与首页各区块、文章页那张大卡片同级（卡片直接贴着导航不好看）；
+   下面与第一张年份卡片之间留一个卡片间距（--card-gap）。 */
+div.post-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 34px 0 var(--card-gap);
+}
+
+/* 卡片里那行篇数：去掉 <p> 自带的上下外边距，高度跟着卡片节奏走 */
+div.post-toolbar p#post-count {
+  margin: 0;
+}
+
+/* 搜索框那一块（宽度见 layouts/partials/custom_head.html）：
+   放大镜 + 输入框排成一行，整块紧跟在篇数后面。 */
+div.post-toolbar div.post-search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 放大镜：只作引导装饰（标记了 aria-hidden），不参与点击 */
+div.post-toolbar span.post-search-icon {
+  flex: 0 0 auto;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 输入框：高度 = 篇数那行文字的高度（篇数那行是行高 1.6 × 字号 1em），
+   字号也跟篇数一致，两者等高、文字坐同一条中线。
+   外观做成胶囊（与列表底部、文章页的标签胶囊 a.tag-pill 同一套描边与圆角），
+   底色与描边取 --pill-bg / --pill-border（比卡片白底下沉一档），与标签胶囊同一套，不跟卡片糊在一起；
+   聚焦时描边换成主色，代替浏览器默认的聚焦方框。 */
+div.post-toolbar input#search-input {
+  height: 1.6em;
+  font-size: 1em;
+  padding: 0 12px;
+  border: 1px solid var(--pill-border);
+  border-radius: var(--pill);
+  background: var(--pill-bg);
+  color: var(--text-color-primary);
+  outline: none;
+}
+
+div.post-toolbar input#search-input::placeholder {
+  color: var(--text-color-tertiary);
+}
+
+div.post-toolbar input#search-input:focus {
+  border-color: var(--cat-green);
+}
+
+/* ---- 年份 = 卡片标题（纯文字，没有小圆点；字号 = 规范里 .card h3 的 16px） ---- */
+h3.post-card-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-color-primary);
+}
+
+/* ---- 文章列表：与首页「置顶文章 / 文章分类」的 ul.home-posts 统一 ----
+   同一组取值：带圆点、左缩进 1.5em、每行上下各 3px。
+   改这里时记得对照 assets/css/home.css 里的 ul.home-posts（首页那份）。 */
+ul.post-list {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin: 0;
+}
+
+li.post-row {
+  padding: 3px 0;
+}
+
+/* 一行 = 日期 + 标题。
+   注意 li 必须保持默认的 display: list-item —— 一旦改成 flex 之类的值，
+   浏览器就不再生成前面那个圆点；所以两列由里层这层 span 排成 flex 行。 */
+li.post-row > span.post-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 日期：定宽 + 等宽数字，让每条标题的左边缘竖着对齐。
+   用系统字体打不出 Inter Tight，就用 tabular-nums 顶替。 */
+li.post-row time {
+  flex: 0 0 auto;
+  min-width: 5em;
+  font-size: 13px;
+  color: var(--text-color-tertiary);
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 标题：占满日期右边的剩余宽度。
+   颜色 / 已访问色 / hover 下划线都用主题的 a 规则，与首页列表里的文章链接一致，
+   所以这里不再写颜色与字重。 */
+li.post-row a.post-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ---- 底部标签卡片：只有标签胶囊，没有标题文字 ---- */
+div.post-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 胶囊本身是通用零件 a.tag-pill（见 assets/css/cards.css，文章页末尾也用它），
+   这里只负责把这一行排成可换行的横排。 */
+
+/* ---- 一篇都没有时的空态 ---- */
+p.post-empty {
+  margin: 0;
+  color: var(--text-color-tertiary);
+  text-align: center;
+}
+
+/* ---- 窄屏：两列之间收紧，日期列窄一点 ---- */
+@media (max-width: 480px) {
+  li.post-row > span.post-row-main {
+    gap: 8px;
+  }
+
+  li.post-row time {
+    min-width: 4.4em;
+  }
+}

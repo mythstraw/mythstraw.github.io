@@ -1,13 +1,24 @@
 ---
+# 卡片布局：H1 与各节小标题（###）留在卡片外面，每个分类的列表收进自己的
+# <div class="page-card">（卡面样式在 assets/css/cards.css）。
+# 页首那句导语也单独一张卡片（它不属于任何分类，但用户 2026-09-29 要求跟其他块一样进卡片）。
+# Markdown 里的原始 HTML 能生效是因为 hugo.yaml 开了 markup.goldmark.renderer.unsafe，
+# 而且 <div> 后面留了空行 —— Goldmark 的 HTML 块遇到空行就结束，后面的 Markdown 才会渲染。
 title: "工具推荐"
 description: "我在用的一些 AI 小工具，好用就放这儿。"
 ---
 
 # 工具推荐
 
+<div class="page-card">
+
 这里主要推荐一些好用的 AI 小工具，都是我自己在用或者在折腾的，陆续补充。
 
+</div>
+
 ### 网页工具
+
+<div class="page-card">
 
 - **[随心打印](https://topbook.cc/tools/cornell-notes-paper)** —— 康奈尔笔记纸在线生成，选好版式直接打印，随手就能用。
 - **[免费抠图](https://koukoukou.cn/local)** —— 在线一键抠图，图片本地处理，不用担心素材外传。
@@ -27,14 +38,22 @@ description: "我在用的一些 AI 小工具，好用就放这儿。"
 - **[AI 字体生成器](https://refont.ai/zh)** —— 免费创作独特的纹身、签名和手写文本
 - **[Calligrapher](https://www.calligrapher.ai/)** —— 免费创作英文手写签名
 
+</div>
+
 ### 有趣的网站
+
+<div class="page-card">
 
 * **[中华珍宝馆](https://g2.ltfc.net/)** —— 中国历代书法绘画在线欣赏
 * **[奇迹秀](https://www.qijishow.com/)** —— 设计师的宝藏网站
 * **[麦田艺术](https://www.nbfox.com/)** —— 高清油画免费下载
 * **[Neal.fun](https://neal.fun/)** —— 打发时间的解压小游戏
 
+</div>
+
 ### 开源工具
+
+<div class="page-card">
 
 * **[FMHY](https://fmhy.net/)** —— 互联网最大的免费资源收藏
 * **[SVG图案生成器](https://cn.pattern.monster/)** —— 在SVG中创建无缝图案，用作网站背景、头部图片等设计
@@ -44,3 +63,5 @@ description: "我在用的一些 AI 小工具，好用就放这儿。"
 * **[Readest](https://readest.com/)** —— 电子书阅读器
 * **[Revezone](https://revezone.com/index.html)** —— 一个轻量级、以本地为先、以图为中心的思维管理工具
 * **[Salt Player](https://moriafly.com/program/salt-player.html)** —— 本地音乐播放器
+
+</div>

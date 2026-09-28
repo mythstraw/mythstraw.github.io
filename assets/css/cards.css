@@ -1,0 +1,217 @@
+/* ============================================================
+   通用卡片样式（assets/css/cards.css）
+
+   全站加载（layouts/partials/custom_head.html 里无条件引入）。分两部分：
+
+   1) 设计 token —— 圆角、阴影、内边距、间距、分割线、四色与浅调。
+      这是全站卡片唯一的取值来源，改这里就能同时改到：
+        · 博客列表页 /blog/、分类归档 /category/<key>/、标签页 /blog/<tag>/
+          （卡片版式在 assets/css/blog-cards.css：div.post-year-card / div.post-row /
+            div.post-tag-card）
+        · 首页每个区块的列表卡（layouts/index.html + assets/css/home.css）
+        · 文章页的正文卡与标签胶囊（layouts/_default/single.html）
+        · 「工具推荐」「关于我」的正文卡（content/projects.md、content/about.md）
+      取值来自「时间日记 · 设计规范 v1.0」：
+        圆角：卡片 20px、胶囊 999px
+        阴影：0 2px 10px rgba(59,54,43,.05)；hover 升到 0 4px 16px rgba(59,54,43,.08)
+        内边距：18px 16px（窄屏 14px 12px）；卡片间距 12px；分割线 #F0ECE3
+        四色：green #3A5A40（主色）· blue #5B6D8C · purple #6B5B8E · orange #BC6C25（点睛）
+        浅调 tint：浅色态用规范实色，深色态用同色 14% 透明
+      文字颜色不另立变量，直接复用站点既有的 --text-color-*，明暗切换与全站一致。
+
+   2) 两个通用零件：
+        · div.page-card —— 通用卡面，任何地方给一块内容加卡片都是套这一层
+        · a.tag-pill    —— 标签胶囊（文章页末尾、列表页底部标签卡片共用）
+      分类配色（--cat-*）不在这里挂，由各页面自己决定用哪个色：
+      列表页把 .cat-<key> 挂在文章行上（ai-tech 蓝、reading-notes 紫、other 与未知 → 绿）。
+
+   三个明暗分支必须写全，否则「跟随系统」与「手动锁定」会变成两套配色：
+     1) :root / html[data-theme="light"]    浅色
+     2) @media (prefers-color-scheme: dark) 自动模式 + 系统深色
+     3) html[data-theme="dark"]             手动锁定深色
+   ============================================================ */
+
+:root,
+html[data-theme="light"] {
+  --card-r: 20px;
+  --pill: 999px;
+  --card-pad: 18px 16px;
+  --card-gap: 12px;
+  --card-bg: #fff;
+  --card-border: 1px solid transparent;
+  --shadow-card: 0 2px 10px rgba(59, 54, 43, .05);
+  --shadow-card-hover: 0 4px 16px rgba(59, 54, 43, .08);
+  /* 行与行之间的分割线、以及行 hover 时那层极淡的底色 */
+  --card-divider: #F0ECE3;
+  --card-row-hover: rgba(59, 54, 43, .035);
+
+  /* 标签胶囊（a.tag-pill）与列表页搜索框这类「小控件」的底色。
+     它们都待在白色卡片里，若底色也取 --card-bg（#fff），
+     就只剩一条极淡的描边能把它们跟卡片分开，看上去糊成一片。
+     所以底色下沉一档：用规范里的页面底色 --bg #F8F6F2，描边用规范里的 --border #E7E2D8。*/
+  --pill-bg: #F8F6F2;
+  --pill-bg-hover: rgba(58, 90, 64, .10);
+  --pill-border: #E7E2D8;
+
+  --cat-green: #3A5A40;
+  --cat-blue: #5B6D8C;
+  --cat-purple: #6B5B8E;
+  --cat-orange: #BC6C25;
+  --cat-tint-green: #E9EFE9;
+  --cat-tint-blue: #EAEDF3;
+  --cat-tint-purple: #EFEBF4;
+  --cat-tint-orange: #F7EDE3;
+}
+
+/* 深色（自动模式 + 系统深色）：四色提亮、tint 改同色 14% 透明；
+   卡片底色/描边复用站点既有深色面（--bg-color-secondary / --border-color 的取值），
+   所以各页面的深色观感是同一套。 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card-bg: #1e2227;
+    --card-border: 1px solid #2b3138;
+    --shadow-card: 0 2px 10px rgba(0, 0, 0, .22);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, .32);
+    --card-divider: rgba(255, 255, 255, .07);
+    --card-row-hover: rgba(255, 255, 255, .04);
+
+    /* 深色下卡片是 #1e2227，胶囊比它再亮一档 */
+    --pill-bg: rgba(255, 255, 255, .06);
+    --pill-bg-hover: rgba(143, 184, 148, .16);
+    --pill-border: rgba(255, 255, 255, .12);
+
+    --cat-green: #8FB894;
+    --cat-blue: #9DB0D1;
+    --cat-purple: #B0A2D6;
+    --cat-orange: #E0A265;
+    --cat-tint-green: rgba(143, 184, 148, .14);
+    --cat-tint-blue: rgba(157, 176, 209, .14);
+    --cat-tint-purple: rgba(176, 162, 214, .14);
+    --cat-tint-orange: rgba(224, 162, 101, .14);
+  }
+}
+
+/* 深色（手动锁定）：取值与上一条一致 */
+html[data-theme="dark"] {
+  --card-bg: #1e2227;
+  --card-border: 1px solid #2b3138;
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, .22);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, .32);
+  --card-divider: rgba(255, 255, 255, .07);
+  --card-row-hover: rgba(255, 255, 255, .04);
+
+  --pill-bg: rgba(255, 255, 255, .06);
+  --pill-bg-hover: rgba(143, 184, 148, .16);
+  --pill-border: rgba(255, 255, 255, .12);
+
+  --cat-green: #8FB894;
+  --cat-blue: #9DB0D1;
+  --cat-purple: #B0A2D6;
+  --cat-orange: #E0A265;
+  --cat-tint-green: rgba(143, 184, 148, .14);
+  --cat-tint-blue: rgba(157, 176, 209, .14);
+  --cat-tint-purple: rgba(176, 162, 214, .14);
+  --cat-tint-orange: rgba(224, 162, 101, .14);
+}
+
+/* ---------- 通用卡面：想给一块内容加卡片，套一层 <div class="page-card"> ----------
+   与列表页的年份卡片（div.post-year-card，见 assets/css/blog-cards.css）同一套取值。
+   内容排版不用管 —— 卡片只负责白底、圆角、描边（浅色态透明）与阴影，
+   里面的标题、段落、列表、标签一律沿用原来的样式。 */
+div.page-card {
+  padding: var(--card-pad);
+  background: var(--card-bg);
+  border: var(--card-border);
+  border-radius: var(--card-r);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .18s ease;
+}
+
+div.page-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* 卡内首尾元素不额外撑白：卡片自己的内边距已经留够了，
+   否则正文第一个标题/段落的上外边距会叠在内边距上，卡片顶部显得虚高。
+   <content> 是自定义元素（浏览器默认 display: inline，主题只给了它
+   line-height 与列表缩进），放进卡片当块级容器用时显式声明块级，
+   避免里面的块级子元素（p / h2 / ul）在行内盒子里排布导致外边距行为不一致。 */
+div.page-card > content {
+  display: block;
+}
+
+div.page-card > :first-child,
+div.page-card > content > :first-child {
+  margin-top: 0;
+}
+
+div.page-card > :last-child,
+div.page-card > content > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- 文章页末尾的标签行（在正文卡片内部、正文下面）----------
+   标签自己排成一行、可换行；与正文之间画一条细分隔线。
+   （2026-09-29 一度按「博客文章页取消中间的分割线」去掉，经用户澄清：
+   那句指的是 /blog/ 文章列表页，不是文章页，故恢复分割线。） */
+div.article-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--card-divider);
+}
+
+/* ---------- 标签胶囊 ----------
+   用在：文章页末尾（layouts/_default/single.html）、
+   列表页底部的标签卡片（layouts/_default/list.html）。
+   底色取 --pill-bg（比卡片白底下沉一档的暖白），描边取 --pill-border；
+   hover 时底色转主色 tint、描边与文字转主色。
+   （列表页原本还有一款「分类胶囊」a.post-cat —— 实心 tint 底 + 分类色字，
+   2026-09-29 随「取消列表页的分类标签」一起删掉了。） */
+a.tag-pill,
+a.tag-pill:visited {
+  display: inline-block;
+  padding: 3px 11px;
+  border: 1px solid var(--pill-border);
+  border-radius: var(--pill);
+  background: var(--pill-bg);
+  font-size: 13px;
+  color: var(--text-color-secondary);
+  text-decoration: none;
+}
+
+a.tag-pill:hover,
+a.tag-pill:focus {
+  background: var(--pill-bg-hover);
+  border-color: var(--cat-green);
+  color: var(--cat-green);
+  text-decoration: none;
+}
+
+/* ---------- 列表的小圆点：一律用主色 ----------
+   站点里所有真的会画出圆点的无序列表都在这里统一定色（用户 2026-09-29 定）：
+     · content ul        —— 正文与「工具推荐 / 关于我」页面正文里的列表
+     · ul.post-list      —— 博客列表页 /blog/、分类归档、标签页（assets/css/blog-cards.css）
+     · ul.home-posts     —— 首页「置顶文章 / 文章分类」的列表（assets/css/home.css）
+   只改圆点颜色，不动文字颜色：圆点由 ::marker 绘制，它默认继承 li 的文字色，
+   这里单独覆盖成主色（深色模式自动取提亮后的主色，见上面的 --cat-green）。
+   其余列表（目录 .toc-nav、主题的 ul.blog-posts 等）本来就是 list-style: none，
+   不生成圆点，写在这里也不会有影响。 */
+content ul > li::marker,
+ul.post-list > li::marker,
+ul.home-posts > li::marker {
+  color: var(--cat-green);
+}
+
+/* ---------- 窄屏：收紧卡片内边距 ----------
+   三个选择器都要写：自动模式走 :root，手动锁定走带 data-theme 的 html
+   （后者权重更高，只写 :root 在锁定明暗时会盖不住）。 */
+@media (max-width: 480px) {
+  :root,
+  html[data-theme="light"],
+  html[data-theme="dark"] {
+    --card-pad: 14px 12px;
+  }
+}

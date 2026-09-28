@@ -6,7 +6,21 @@
      3) 条数改用 textContent 写入，避免 innerHTML；
      4) 搜索框整块靠右，宽度 = 顶部导航整排的宽度：宽度由下面的 JS 量出来
         写进 CSS 变量 --search-width（样式在 partials/custom_head.html），
-        所以搜索框的右边缘与导航文字对齐、宽度也与它一致。
+        所以搜索框的右边缘与导航文字对齐、宽度也与它一致；
+     5) 列表结构：一年一张卡片（见下面的 div.blog-posts）—— 年份就是卡片的标题，
+        卡片里是这一年的文章列表（ul.post-list），外观与首页「置顶文章 / 文章分类」
+        的 ul.home-posts 统一：带圆点、只列「日期 + 标题」，
+        不画行与行之间的分割线、右侧也没有分类标签（用户 2026-09-29 定）。
+        页面最底部的标签云收进另一张卡片（只放标签，不写标题文字；胶囊用通用零件 a.tag-pill，与文章页文末那一款同款）。
+        样式在 assets/css/blog-cards.css，配色取设计规范（卡片标题字号 16px = 规范里 .card h3）。
+        注意：下面搜索脚本按 .post-row 找行、用 a.post-title 取标题
+        （不要用 a 取 —— 页面底部的标签卡片里也有链接）；
+        筛选时按「某张年份卡片里还有没有可见行」来决定整张卡片的显隐。
+     6) 列表上方的工具条：文章篇数（共 N 篇文章）与搜索框收进同一张卡片，
+        搜索框紧贴在篇数后面、中间隔一个放大镜图标做引导，高度与篇数那行文字等高；
+        窄屏放不下时「图标 + 搜索框」换到第二行。
+        版式在 assets/css/blog-cards.css 的 div.post-toolbar，
+        卡片外观用 assets/css/cards.css 的 div.page-card。
  */}}
 {{ define "main" }}
 <content>
@@ -16,18 +30,34 @@
     <a href="{{ with .Site.GetPage "/blog" }}{{ .RelPermalink }}{{ else }}{{ .Site.Home.RelPermalink }}{{ end }}">{{ T "remove_filter" }}</a>
   </small>
   {{ end }}
-  {{ if .Site.Params.postSearch }}
-  {{/* 搜索框：外层 div 负责「整块靠右」，宽度由下面 JS 量出导航宽度后写进 --search-width */}}
-  <div class="post-search-row">
-    <input id="search-input" type="text" placeholder="{{ T "search_placeholder" }}" />
+  {{/* 列表工具条：文章篇数 + 搜索框，收进同一张卡片（用户 2026-09-29 定），
+       搜索框排在「共 N 篇文章」后面。卡片外观来自 cards.css 的 div.page-card，
+       版式（一行两端对齐、窄屏换行）在 assets/css/blog-cards.css 的 div.post-toolbar。 */}}
+  {{ if or .Site.Params.showPostCount .Site.Params.postSearch }}
+  <div class="page-card post-toolbar">
+    {{ if .Site.Params.showPostCount }}
+    {{ $visiblePages := where .Pages "Params.hidden" "!=" true }}
+    <p id="post-count">{{ T "post_count" (dict "n" (len $visiblePages)) }}</p>
+    {{ end }}
+    {{ if .Site.Params.postSearch }}
+    {{/* 搜索框：紧跟在篇数后面，中间隔一个放大镜图标做引导；高度与篇数那行文字等高。
+         排布见 assets/css/blog-cards.css 的 div.post-toolbar，
+         宽度由下面 JS 量出导航宽度后写进 --search-width。 */}}
+    <div class="post-search-row">
+      <span class="post-search-icon" aria-hidden="true">🔍</span>
+      <input id="search-input" type="text" placeholder="{{ T "search_placeholder" }}" aria-label="{{ T "search_placeholder" }}" />
+    </div>
+    {{ end }}
   </div>
+  {{ end }}
+  {{ if .Site.Params.postSearch }}
   <script>
     // 等待 DOM 完全加载后执行
     document.addEventListener('DOMContentLoaded', function () {
       // 缓存 DOM 元素
       const searchInput = document.getElementById('search-input');
-      const posts = document.querySelectorAll('.blog-posts li');
-      const years = document.querySelectorAll('.blog-posts h3');
+      const posts = document.querySelectorAll('.blog-posts .post-row');
+      const yearCards = document.querySelectorAll('.blog-posts .post-year-card');
       const postCountTpl = {{ T "post_count" (dict "n" "__N__") | jsonify | safeJS }};
 
       // 搜索框宽度 = 顶部导航整排的宽度（从第一个链接的左边缘量到最后一个链接的右边缘），
@@ -59,28 +89,27 @@
       // 更新搜索结果
       function updateSearchResults(searchTerm) {
         let visiblePosts = 0;
-        const displayedYears = new Set();
         posts.forEach(function (post) {
-          const link = post.querySelector('a');
-          const time = post.querySelector('time');
-          if (!link || !time) return;
+          const link = post.querySelector('a.post-title');
+          if (!link) return;
           const title = link.textContent.toLowerCase();
-          const year = time.getAttribute('datetime').split('-')[0];
-          if (title.includes(searchTerm)) {
+          if (!searchTerm || title.includes(searchTerm)) {
             post.style.display = '';
             visiblePosts++;
-            displayedYears.add(year);
           } else {
             post.style.display = 'none';
           }
         });
 
-        {{ if .Site.Params.groupByYear }}
-        years.forEach(function (y) {
-          const year = y.textContent;
-          y.style.display = displayedYears.has(year) ? '' : 'none';
+        // 一年一张卡片：卡片里的行全被筛掉时，整张卡片（连年份标题）一起隐藏
+        // （不用 <ul>/<li>，所以这里是 div 行、div 卡片）
+        yearCards.forEach(function (card) {
+          const anyVisible = Array.prototype.some.call(
+            card.querySelectorAll('.post-row'),
+            function (item) { return item.style.display !== 'none'; }
+          );
+          card.style.display = anyVisible ? '' : 'none';
         });
-        {{ end }}
 
         {{ if .Site.Params.showPostCount }}
         const countEl = document.getElementById('post-count');
@@ -94,52 +123,72 @@
     });
   </script>
   {{ end }}
-  {{ if .Site.Params.showPostCount }}
-  {{ $visiblePages := where .Pages "Params.hidden" "!=" true }}
-  <p id="post-count">{{ T "post_count" (dict "n" (len $visiblePages)) }}</p>
-  {{ end }}
-  <ul class="blog-posts">
+  {{ $pages := where .Pages "Params.hidden" "!=" true }}
+  <div class="blog-posts">
+    {{ if not $pages }}
+    {{/* 一篇都没有：仍给一张卡片装空态文案，不留空块 */}}
+    <div class="post-year-card">
+      <p class="post-empty">{{ T "no_posts" }}</p>
+    </div>
+    {{ else if .Site.Params.groupByYear }}
+    {{/* 一年一张卡片：年份就是卡片标题（h3.post-card-title），
+         卡片里是这一年的文章列表（ul.post-list），外观与首页「置顶文章 / 文章分类」
+         的 ul.home-posts 统一：带圆点、只有「日期 + 标题」，
+         不画行间分割线、右侧也没有分类标签。
+         换年时先把上一张卡片用 </ul></div> 收口，再开新的一张
+         （原先这里多写了一个 </div>：多一年就会提前把外层 div.blog-posts 关掉，
+         现在开卡与收口的标签一一对应）。
+         注意：li 本身不能改成 display:flex，否则浏览器不再生成前面的圆点，
+         「日期 + 标题」两列由里面那层 span.post-row-main 排。 */}}
     {{ $currentYear := 0 }}
-    {{ range .Pages }}
-    {{ if not .Params.hidden }}
-    {{ if .Site.Params.groupByYear }}
+    {{ $yearOpen := false }}
+    {{ range $pages }}
     {{ $year := .Date.Year }}
     {{ if ne $year $currentYear }}
-    <h3>{{ $year }}</h3>
+    {{ if $yearOpen }}</ul></div>{{ end }}
+    <div class="post-year-card">
+      <h3 class="post-card-title">{{ $year }}</h3>
+      <ul class="post-list">
     {{ $currentYear = $year }}
+    {{ $yearOpen = true }}
     {{ end }}
-    {{ end }}
-    <li>
-      <span class="{{ if .Site.Params.groupByYear }} grouped {{ else }} ungrouped {{ end }}">
-        <i>
-          <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
-            {{ if .Site.Params.groupByYear }}
-            {{/* 年份已经由上面的分组标题给出，这里只留「月日」，避免 80px 的日期列放不下中文长日期 */}}
-            {{ .Date.Format (default "1月2日" .Site.Params.dateFormatShort) }}
-            {{ else }}
-            {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
-            {{ end }}
-          </time>
-        </i>
+    <li class="post-row">
+      <span class="post-row-main">
+        <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>{{ .Date.Format (default "1月2日" .Site.Params.dateFormatShort) }}</time>
+        <a class="post-title" href="{{ .Permalink }}">{{ .Title }}</a>
       </span>
-      <a href="{{ .Permalink }}">{{ .Title }}</a>
     </li>
     {{ end }}
+    {{ if $yearOpen }}</ul></div>{{ end }}
     {{ else }}
-    <li>
-      {{ T "no_posts" }}
-    </li>
+    {{/* 不按年份分组时（hugo.yaml 里 params.groupByYear = false）：所有文章收进
+         一张没有标题的卡片，行还是同一套版式，日期用完整年月日。 */}}
+    <div class="post-year-card">
+      <ul class="post-list">
+        {{ range $pages }}
+        <li class="post-row">
+          <span class="post-row-main">
+            <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>{{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}</time>
+            <a class="post-title" href="{{ .Permalink }}">{{ .Title }}</a>
+          </span>
+        </li>
+        {{ end }}
+      </ul>
+    </div>
     {{ end }}
-  </ul>
-  {{ if .Data.Singular }}
-  {{else}}
-  <small>
-    <div>
-      {{ range .Site.Taxonomies.tags }}
-      <a href="{{ .Page.Permalink }}">#{{ .Page.Title }}</a>&nbsp;
+  </div>
+  {{ if not .Data.Singular }}
+  {{ with .Site.Taxonomies.tags }}
+  {{/* 页面最底部的标签云：整块收进一张卡片（外观与上面的年份卡片同一套，不写标题）；
+       胶囊本体用通用零件 a.tag-pill（assets/css/cards.css），与文章页文末标签同款。 */}}
+  <div class="post-tag-card">
+    <div class="post-tag-cloud">
+      {{ range . }}
+      <a class="tag-pill" href="{{ .Page.Permalink }}">#{{ .Page.Title }}</a>
       {{ end }}
     </div>
-  </small>
+  </div>
+  {{ end }}
   {{ end }}
 </content>
 {{ end }}

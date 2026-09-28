@@ -1,6 +1,9 @@
 ---
 # 顶部导航里的名字由 hugo.yaml 的 menus.main 决定，这里只管页面自身。
 # 非 blog 类型的页面主题模板不渲染标题，所以正文里自己写一个 H1。
+# 卡片布局：H1 与各节小标题（##）留在卡片外面，每节的正文收进各自的 <div class="page-card">
+# （卡面样式在 assets/css/cards.css；Markdown 里的原始 HTML 能生效是因为 hugo.yaml 开了
+#  markup.goldmark.renderer.unsafe，且 <div> 后面留了空行，里面的 Markdown 才会正常渲染）。
 title: "关于我"
 description: "嗨！这里是 ForeverYang 的博客。"
 ---
@@ -8,6 +11,8 @@ description: "嗨！这里是 ForeverYang 的博客。"
 # 关于我
 
 ## 嗨！👋 这里是 <mark>ForeverYang</mark> 的个人博客。{#hi-foreveryang}
+
+<div class="page-card">
 
 我是一名**家装设计师**，习惯在图纸上构建空间；我也是一名 **3D 打印玩家**，喜欢把虚拟的想象打印成真实的触感。我对这个世界充满好奇，尤其是**科技**带来的一切变革。
 
@@ -24,8 +29,14 @@ description: "嗨！这里是 ForeverYang 的博客。"
 这个博客，是我记录**科技探索**与**知识沉淀**的自留地。
 很高兴认识你，希望这里的文字能与你产生共鸣。✨
 
+</div>
+
 ## 联系方式
+
+<div class="page-card">
 
 邮箱：<mythstraw@msn.com>  
 
 欢迎来信，或者直接[订阅 RSS](/index.xml)。
+
+</div>

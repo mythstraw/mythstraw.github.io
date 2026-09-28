@@ -1,15 +1,26 @@
 {{/*
     站点级覆盖：theme 的 layouts/_default/single.html
     改动：
-      1) 文章正文与标签之后，加一个「查看所有文章」按钮，跳回文章列表页 /blog/
-         （文案在 i18n/zh-cn.toml 的 view_all_posts，样式在 partials/custom_head.html
-          的 a.all-posts-btn）。只加在 blog 类型的文章页上，
-         关于我 / 工具推荐 / 名句库这些普通页面不显示。
-      2) 标题下面那行日期右边显示所属分类（span.post-cats，样式在 partials/custom_head.html）；
-      3) 其余逻辑与主题一致（标题只在 blog 类型且未挂菜单时渲染、标签、点赞脚本、
-         右侧目录），主题升级后如有多余改动请对比 themes/hugo-bearneo/layouts/_default/single.html。
+      1) 文章页（.Type == "blog"）整页收进一张卡片（div.page-card，卡面与取值见
+         assets/css/cards.css）：标题 h1、下面那行日期、正文、文末标签、「查看所有文章」
+         全在卡内（用户 2026-09-29 定的版式），卡片闭合在「查看所有文章」之后。
+         其他页面（关于我 / 工具推荐 / 名句库）不套卡片 —— 它们的卡片写在各自的 Markdown 里，
+         这里再套一层会变成卡片里再嵌卡片。
+      2) 标题下面那行日期右边显示所属分类（span.post-cats，用 .GetTerms 取分类，
+          分类名点进 /category/<key>/ 归档页；样式在 partials/custom_head.html）。
+          2026-09-29 一度删掉，经用户澄清：要取消分割线与分类标签的是
+          「/blog/ 文章列表页」（layouts/_default/list.html），不是文章页 —— 这里恢复原样。
+      3) 文末标签从「#标签」文字链接改成胶囊（a.tag-pill）；标签上方保留一条
+          分割线（div.article-tags 的 border-top，见 assets/css/cards.css）。
+      4) 「查看所有文章」链接（文案在 i18n/zh-cn.toml 的 view_all_posts，样式在
+         partials/custom_head.html 的 a.all-posts-text）在卡内、整行靠右，只加在 blog 文章页上。
+      5) 其余逻辑与主题一致（标题只在 blog 类型且未挂菜单时渲染、点赞脚本、右侧目录），
+         主题升级后如有多余改动请对比 themes/hugo-bearneo/layouts/_default/single.html。
 */}}
 {{ define "main" }}
+{{/* 卡片开始：只有 blog 文章页套卡片，闭合在下方「查看所有文章」之后 */}}
+{{ if eq .Type "blog" }}<div class="page-card article-card">{{ end }}
+
 {{ if eq .Type "blog" }}
 {{ if not .Params.menu }}
 <h1>{{ .Title }}</h1>
@@ -30,23 +41,26 @@
 </p>
 {{ end }}
 {{ end }}
-{{ end }} 
+{{ end }}
 
 <content> {{ .Content }} </content>
 
-<p>
-  {{ range (.GetTerms "tags") }}
-  <a href="{{ .Permalink }}">#{{ .LinkTitle }}</a>
-  {{ end }}
-</p>
+{{/* 文末标签：胶囊样式 a.tag-pill（见 assets/css/cards.css），
+     在卡片内部、正文下面，与正文之间保留一条细分割线。
+     原本是「#标签」纯文字链接，外层那个空 <p> 也一并去掉 —— 没标签的页面不再留空段落。 */}}
+{{ with (.GetTerms "tags") }}
+<div class="article-tags">
+  {{ range . }}<a class="tag-pill" href="{{ .Permalink }}">#{{ .LinkTitle }}</a>{{ end }}
+</div>
+{{ end }}
 
-{{/* 文章末尾的「查看所有文章」链接：回到博客列表页（/blog/），整行靠右。
-     列表页地址取自站点里的 blog 分区，取不到时回落到首页。 */}}
 {{ if eq .Type "blog" }}
+{{/* 文章末尾的「查看所有文章」链接：回到博客列表页（/blog/），整行靠右，也在卡内。
+     列表页地址取自站点里的 blog 分区，取不到时回落到首页。 */}}
 <div class="all-posts-link">
   <a class="all-posts-text" href="{{ with .Site.GetPage "/blog" }}{{ .RelPermalink }}{{ else }}{{ .Site.Home.RelPermalink }}{{ end }}">{{ T "view_all_posts" }}</a>
 </div>
-{{ end }}
+</div>{{ end }}
 
 {{ $upvoteEnabled := .Site.Params.upvote }}
 {{ if isset .Params "upvote" }}{{ $upvoteEnabled = .Params.upvote }}{{ end }}

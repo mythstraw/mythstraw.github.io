@@ -1,17 +1,25 @@
 /* 首页专用样式（由 layouts/partials/custom_head.html 在 .IsHome 时引入）
-   颜色与字体一律用 custom_head.html 里定义的 CSS 变量，
+   颜色与字体一律用 custom_head.html 里定义的 CSS 变量；
+   卡片取值（圆角/阴影/内边距/分割线/四色）用 assets/css/cards.css 的设计 token，
    所以明暗两种模式、手动锁定与跟随系统都能自动跟上，不用在这里再写一遍配色。 */
 
-/* ---------- 每日一句（纯粗体文字，无卡片、无按钮） ---------- */
+/* ---------- 每日一句（卡内：纯粗体文字，无按钮） ---------- */
 p.home-quote {
   /* 关键：宽度贴合内容本身（fit-content）——
      这样块级元素才能被左右 auto 边距水平居中，
-     也才能让「作者右对齐」对齐到名句的右侧而不是页面右边缘。 */
+     也才能让「作者右对齐」对齐到名句的右侧，而不是卡片的右内边缘。 */
   width: fit-content;
+  /* 算上左边那条竖线（border-box）：否则「竖线 3px + 间距 16px」还会额外撑宽，
+     长名句会顶到卡片右内边缘外面。 */
+  box-sizing: border-box;
   max-width: 100%;
-  /* 左右 auto → 整块居中；上下同一个值（34px，与「最新文章」小标题的上边距一致）→ 四周留白一致 */
-  margin: 34px auto;
-  padding: 0;
+  /* 左右 auto → 卡内居中；上下留白交给外层卡片 div.home-quote-card（见下面），
+     所以这里上下写 0。 */
+  margin: 0 auto;
+  /* 名句左边那条「引用竖线」（blockquote 那种）：名句与下面的作者行一起被它框住。
+     想调粗细 / 颜色 / 与文字的间距，改下面这两行就够了。 */
+  border-left: 3px solid var(--cat-green);
+  padding: 0 0 0 16px;
   font-size: 1.3em;
   line-height: 1.7;
   color: var(--text-color-primary);
@@ -42,7 +50,20 @@ p.home-quote span.quote-author::before {
   content: "—— ";
 }
 
-/* ---------- 首页小标题 ---------- */
+/* ---------- 首页卡片（卡面本身在 assets/css/cards.css 的 div.page-card） ----------
+   卡面只管白底/圆角/描边/阴影/内边距，间距与版式在本文件安排：
+     · 每日一句     → div.home-quote-card（自己留卡外上下留白）
+     · 每节文章列表 → div.home-list-card
+     · 标签云       → div.home-topic-card
+   后两者不另写间距：上面的小标题自带 10px 下边距，
+   下一个区块的小标题自带 34px 上边距，间距由它们给。 */
+
+/* 每日一句卡片：上下各留 34px（与下面各节小标题的上边距同值） */
+div.home-quote-card {
+  margin: 34px 0;
+}
+
+/* ---------- 首页小标题（一律留在卡片外面） ---------- */
 h2.home-h2 {
   margin: 34px 0 10px;
   font-size: 1.05em;
@@ -59,7 +80,7 @@ h2.home-h2-topics::before {
   content: "🏷️ ";
 }
 
-/* ---------- 置顶文章（普通无序列表：只列标题，不带日期） ---------- */
+/* ---------- 置顶文章 / 文章分类（卡内：普通无序列表，只列标题、不带日期） ---------- */
 ul.home-posts {
   list-style-type: disc;
   padding-left: 1.5em;
@@ -92,30 +113,19 @@ ul.home-posts li.home-cat-empty {
   color: var(--text-color-tertiary);
 }
 
-/* ---------- 分类（标签）入口 ---------- */
+/* ---------- 标签入口（卡内：可换行的胶囊） ---------- */
 div.topic-cloud {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-div.topic-cloud a {
-  display: inline-block;
-  padding: 2px 11px;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  background-color: var(--bg-color-secondary);
-  font-size: 0.9em;
-}
-
-div.topic-cloud a:hover {
-  text-decoration: none;
-  border-color: var(--link-color);
-}
-
-div.topic-cloud a:visited {
-  color: var(--link-visited-color);
-}
+/* 胶囊本身不在这里定义 —— 与文章页末尾那一款完全同款：
+   卡面透出的白底 + 细描边 + 13px，样式在 assets/css/cards.css 的 a.tag-pill
+   （layouts/index.html 里给每个标签链接挂了 class="tag-pill"）。
+   原先这里有 div.topic-cloud a / :hover / :visited 三条（灰底胶囊 + 紫色已访链接），
+   现在整段删掉：留着的话 div.topic-cloud a:visited 权重比 a.tag-pill:visited 高，
+   会把胶囊文字染成紫色，改不动。 */
 
 div.topic-cloud span.topic-count {
   margin-left: 5px;
