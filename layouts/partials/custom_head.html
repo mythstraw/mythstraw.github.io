@@ -156,14 +156,17 @@
   }
 
   /* 标题行：左边是明暗切换按钮，右边是站点标题（标题本身仍靠右显示）。
-     两端对齐（space-between）把按钮顶到最左、标题顶到最右；
+     用 flex-end 而不是 space-between：窄屏放不下时标题会换到第二行，
+     这时它是该行唯一的元素，space-between 会把它甩到最左边（右侧空一截），
+     而 flex-end 仍然把它贴在最右 —— 所以标题在任何宽度下都靠右。
+     按钮靠 margin-right: auto 顶到最左端（见下面 .header-theme）。
      align-items: baseline 让按钮文字与标题文字坐在同一条基线上；
-     窄屏放不下时 flex-wrap 会让标题换行，不会挤压重叠。 */
+     flex-wrap: wrap 保证窄屏放不下时换行，不会挤压重叠。 */
   .header-title-row {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    justify-content: space-between;
+    justify-content: flex-end;
     column-gap: 12px;
   }
 
@@ -204,9 +207,12 @@
     max-width: 100%;
   }
 
-  /* 标题行里的按钮：不参与拉伸，宽度跟着内容走 */
+  /* 标题行里的按钮：不参与拉伸，宽度跟着内容走；
+     margin-right: auto 吃掉行内所有剩余空间，把按钮一直顶在标题行最左端
+     （标题行本身是 flex-end，没有它就贴不到左边）。 */
   .header-theme {
     flex: 0 0 auto;
+    margin-right: auto;
   }
 
   /* 站点标题：行内文字靠右显示（它在标题行里本来就被推到最右端）。
