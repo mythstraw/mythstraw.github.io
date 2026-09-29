@@ -26,6 +26,10 @@ other = "还没有文章"
 [quotes_today]
 other = "今天"
 
+# 首页「每日一句」卡片的标题（卡内标题，layouts/index.html）
+[home_quote]
+other = "每日一句"
+
 [home_pinned_posts]
 other = "置顶文章"
 
@@ -58,7 +62,7 @@ other = '订阅 <a href="{{ .rss }}">RSS</a>。'
 other = '通过 <a href="mailto:{{ .email }}">邮件</a>联系我。'
 
 [footer_made_with]
-other = '采用 <a href="https://github.com/rokcso/hugo-bearneo/">Hugo Bear Neo</a> 主题。'
+other = '采用 <a href="https://github.com/mythstraw/hugo-bearneo-card">Hugo Bear Neo Card</a> 主题。'
 
 [footer_sitemap]
 other = '🗺️ <a href="{{ .url }}">站点地图</a>'

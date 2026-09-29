@@ -1,7 +1,10 @@
 {{/*
     站点级覆盖：theme 的 layouts/index.html（主题版只有一行 {{ .Content }}）。
     首页现在是四块：
-      1) 每日一句：整块收进一张卡片（div.page-card + div.home-quote-card），卡里没有按钮，卡内仍是纯粗体文字、整块居中（宽度 fit-content + 左右 auto 边距），
+       1) 每日一句：整块收进一张卡片（div.page-card + div.home-quote-card），卡里没有按钮，
+          卡内首行是卡片标题「每日一句」（h2.home-h2 + h2.home-h2-quote），下面才是名句本身 ——
+          纯粗体文字、整块居中（宽度 fit-content + 左右 auto 边距），
+
          作者在名句下面另起一行、右对齐到名句右侧（样式都在 assets/css/home.css）。
          Hugo 构建时先渲染一条（无 JS 也能看），再由下面这段内联 JS 按「访客本地日期」换成当天那条 ——
          纯静态站点不会自己每天重构，所以真正的「每天不一样」是前端完成的
@@ -35,8 +38,10 @@
   {{ if gt $count 0 }}
   {{ $quote := index $quotes $idx }}
   {{/* 每日一句：整块一张卡片（卡面来自 assets/css/cards.css 的 div.page-card，
-       卡外上下留白由 home.css 的 div.home-quote-card 负责） */}}
+       卡外上下留白由 home.css 的 div.home-quote-card 负责；
+       卡内第一行是卡片标题「每日一句」（与其他区块小标题同一套字号，不加图标） */}}
   <div class="page-card home-quote-card">
+    <h2 class="home-h2 home-h2-quote">{{ T "home_quote" }}</h2>
     <p class="home-quote">
       <strong class="quote-text" id="quote-text">{{ $quote.text }}</strong>
       <span class="quote-author-line"><span class="quote-author" id="quote-author">{{ $quote.author }}</span></span>

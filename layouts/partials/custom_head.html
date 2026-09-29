@@ -216,7 +216,8 @@
 
   /* 博客列表页（layouts/_default/list.html）的搜索输入框：
      宽度 = 顶部导航整排的宽度 —— 由 list.html 的 JS 量好写进 --search-width，
-     没跑 JS 时用 220px 回退；窄屏时 max-width 兜底，不会溢出。
+     没跑 JS 时用 220px 回退；窄屏（≤420px）改由 assets/css/blog-cards.css 末尾的
+     @media 覆盖成弹性宽度（仍以这个默认宽度封顶），保证工具条始终是一行。
      它在工具条卡片里的位置与排布（篇数 → 放大镜 → 输入框，三者紧挨着）
      见 assets/css/blog-cards.css 的 div.post-toolbar。 */
   div.post-search-row input#search-input {

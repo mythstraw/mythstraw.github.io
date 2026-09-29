@@ -9,26 +9,36 @@ p.home-quote {
      这样块级元素才能被左右 auto 边距水平居中，
      也才能让「作者右对齐」对齐到名句的右侧，而不是卡片的右内边缘。 */
   width: fit-content;
-  /* 算上左边那条竖线（border-box）：否则「竖线 3px + 间距 16px」还会额外撑宽，
+  /* 算上左边那条竖线（border-box）：否则「竖线 + 间距」还会额外撑宽，
      长名句会顶到卡片右内边缘外面。 */
   box-sizing: border-box;
   max-width: 100%;
   /* 左右 auto → 卡内居中；上下留白交给外层卡片 div.home-quote-card（见下面），
      所以这里上下写 0。 */
   margin: 0 auto;
-  /* 名句左边那条「引用竖线」（blockquote 那种）：名句与下面的作者行一起被它框住。
-     想调粗细 / 颜色 / 与文字的间距，改下面这两行就够了。 */
-  border-left: 3px solid var(--cat-green);
-  padding: 0 0 0 16px;
-  font-size: 1.3em;
+  /* 名句左边那条「引用竖线」（blockquote 那种）改挂在下面的 strong.quote-text 上，
+     所以它只跟著名句那几行、不再罩住作者那一行。 */
+  /* 与卡片标题（h2.home-h2）同号：1.05em = 16.8px（用户 2026-09-29 定）。
+     作者行是 0.78em，会跟着按比例缩到约 13.1px；想让它保持别的字号，
+     改下面 span.quote-author 的 font-size 就行。 */
+  font-size: 1.05em;
   line-height: 1.7;
   color: var(--text-color-primary);
   /* 想让名句文字本身也居中排列，取消下面这行的注释即可 */
   /* text-align: center; */
 }
 
+/* 名句块：display:block 后，左边的竖线罩住「名句自己占的整块行高」（折行时一起罩住），
+   下面的作者行是另一个块，不在竖线范围内 —— 高度到名句这一行（块）为止。
+   字体：粗体 + 斜体（引用感）。中文没有真斜体，浏览器给的是「机械倾斜」
+   （font-synthesis 合成），英文/数字则是字体自带的真斜体。
+   想调竖线粗细 / 颜色 / 与文字的间距，改下面这三行就够了。 */
 p.home-quote strong.quote-text {
+  display: block;
+  border-left: 5px solid var(--cat-green);
+  padding-left: 16px;
   font-weight: 700;
+  font-style: italic;
 }
 
 /* 作者另起一行，右对齐到上面名句的右侧 */
@@ -58,12 +68,16 @@ p.home-quote span.quote-author::before {
    后两者不另写间距：上面的小标题自带 10px 下边距，
    下一个区块的小标题自带 34px 上边距，间距由它们给。 */
 
-/* 每日一句卡片：上下各留 34px（与下面各节小标题的上边距同值） */
+/* 每日一句卡片：上下各留 34px（与下面各节小标题的上边距同值）。
+   卡内第一行是卡片标题（h2.home-h2 + home-h2-quote），它是卡的第一个子元素，
+   cards.css 的 `div.page-card > :first-child { margin-top: 0 }` 会自动吃掉它的 34px 上外边距，
+   所以这里不用再写一遍卡内间距 —— 标题与名句之间就是 h2 自带的 10px。 */
 div.home-quote-card {
   margin: 34px 0;
 }
 
-/* ---------- 首页小标题（一律留在卡片外面） ---------- */
+/* ---------- 首页小标题（区块标题一律留在卡片外面；唯一例外是「每日一句」的卡片标题，
+   它在卡内，类名多挂一个 home-h2-quote —— 这个类目前没有自己的样式，只作标记） ---------- */
 h2.home-h2 {
   margin: 34px 0 10px;
   font-size: 1.05em;
