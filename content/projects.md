@@ -28,7 +28,7 @@ description: "我在用的一些 AI 小工具，好用就放这儿。"
 - **[Wx-Library电子书](https://www.wxbooks.com/)** —— 电子书网站
 - **[iLovePDF](https://www.ilovepdf.com/)** —— PDF爱好者的在线工具集
 - **[PDF24 Tools](https://tools.pdf24.org/zh/)** —— 解决所有PDF问题的免费PDF工具
-- **[工具箱](https://www.46.la/)** —— 超全的工具网站
+- **[懒人工具箱](https://www.46.la/)** —— 超全的工具网站，日常处理、开发调试
 - **[全能颜色工具](https://www.ysdaima.com/)** —— AI配色、图像处理、代码转换、数据可视化
 - **[包装纸工具](https://friendswrap.com/)** —— 把照片变成包装纸的工具
 - **[煎蛋阅读器](https://reader.jandan.net/#features)** —— 网页版电子书阅读器，覆盖主流电子书格式
@@ -37,6 +37,9 @@ description: "我在用的一些 AI 小工具，好用就放这儿。"
 - **[Watt Toolkit工具箱](https://steampp.net/)** —— 一个开源跨平台的多功能 Steam 工具箱
 - **[AI 字体生成器](https://refont.ai/zh)** —— 免费创作独特的纹身、签名和手写文本
 - **[Calligrapher](https://www.calligrapher.ai/)** —— 免费创作英文手写签名
+- **[OKLCH colors](https://oklch.fyi/)** —— OKLCH色彩模型的工作原理探索工具
+- **[Palettt](https://palettt.com/)** —— OKLCH 色彩调色板生成器与色彩工具
+- **[DevKitLab](https://www.devkitlab.com/zh/tools/)** —— 给开发者使用的工具集
 
 </div>
 
