@@ -204,7 +204,7 @@ D:\知识库\                               ← 知识库实例的 workspace 根
 │       └── llm-wiki\
 │           └── SKILL.md
 │
-└── 洋的知识库\                           ← ★ Obsidian Vault 根
+└── 我的知识库\                           ← ★ Obsidian Vault 根
     ├── 00_Inbox(灵感库)\                        # 快速捕获，多工具入口
     ├── 01_Projects(项目)\                     # 有截止日期的项目
     ├── 02_Areas(领域)\                        # 长期领域
@@ -277,10 +277,12 @@ D:\知识库\                               ← 知识库实例的 workspace 根
 3. 写入 `_nanobot/SOUL.md`
 4. 写入 `_nanobot/USER.md`
 5. 写入 `_nanobot/skills/llm-wiki/SKILL.md`
-6. 写入 `洋的知识库/知识库使用手册.md`
-7. 写入 `洋的知识库/05_Agent(智能体)/wiki/schema.md`
+6. 写入 `我的知识库/知识库使用手册.md`
+7. 写入 `我的知识库/05_Agent(智能体)/wiki/schema.md`
 8. 创建 Wiki 索引、日志、MOC、工具箱索引、标注索引占位文件
 9. 验证并启动
+
+**完整部署指令见 [nanobot 0.3.5 个人知识库自动部署指令](/p/nanobot-deploy-instruction/)。**
 
 ---
 
@@ -315,7 +317,7 @@ D:\知识库\                               ← 知识库实例的 workspace 根
 
 ### 5.2 知识库使用手册创建（作用）
 
-**文件位置**：`洋的知识库/知识库使用手册.md`
+**文件位置**：`我的知识库/知识库使用手册.md`
 
 **作用**：
 
@@ -337,7 +339,7 @@ D:\知识库\                               ← 知识库实例的 workspace 根
 
 ### 5.3 Agent 权限与操作规则创建（作用）
 
-**文件位置**：`洋的知识库/Agent 权限与操作规则.md`
+**文件位置**：`我的知识库/Agent 权限与操作规则.md`
 
 **作用**：
 
@@ -452,14 +454,14 @@ nanobot 扫描 wiki/ 所有页面
 
 **迁移步骤**：
 
-1. **备份 Vault**：复制 `洋的知识库/` 文件夹到新电脑任意位置。
+1. **备份 Vault**：复制 `我的知识库/` 文件夹到新电脑任意位置。
 2. **用 Obsidian 打开**：在新电脑上安装 Obsidian，打开该文件夹。所有笔记、双链、图谱完整呈现，不需要安装 nanobot。
-3. **使用 WorkBuddy**：启动 WorkBuddy，将 `洋的知识库/` 设置为工作目录或授权文件夹，即可继续编辑。
+3. **使用 WorkBuddy**：启动 WorkBuddy，将 `我的知识库/` 设置为工作目录或授权文件夹，即可继续编辑。
 4. **（可选）迁移 nanobot**：如果需要在新电脑上使用 nanobot 管理知识库，复制 `_nanobot/` 目录，修改 `config.json` 中的 workspace 路径，重新启动实例。
 
 **备份策略**：
 
-- **知识资产**：定期复制 `洋的知识库/` 到其他硬盘或云盘
+- **知识资产**：定期复制 `我的知识库/` 到其他硬盘或云盘
 - **Agent 配置**：`_nanobot/` 目录可用 Git 管理，重要性低于知识资产
 - **版本控制**：整个 Vault 建议用 Git 版本化，`_nanobot/memory/.git` 自动提交记忆变更
 
@@ -471,9 +473,11 @@ nanobot 扫描 wiki/ 所有页面
 
 ## 关联
 
-- 配套文件：nanobot 自动部署指令
+- 配套文件：[nanobot 0.3.5 个人知识库自动部署指令](/p/nanobot-deploy-instruction/)
 - Wiki 概念：LLM Wiki 模式 ｜ 标准定义层 ｜ 审核状态机
 - Wiki 实体：llm-wiki Skill
 - 来源摘要：个人知识库 Agent 自动搭建说明
 - 规则文档：知识库使用手册 ｜ Agent 权限与操作规则
 - 领域入口：科技 MOC
+
+> 📄 **延伸阅读**：[nanobot 0.3.5 个人知识库自动部署指令](/p/nanobot-deploy-instruction/) —— 可直接复制给 Agent 的完整部署指令。
