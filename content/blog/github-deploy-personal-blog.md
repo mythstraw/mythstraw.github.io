@@ -2,7 +2,7 @@
 title: "GitHub 部署自己的个人博客网站"
 date: 2026-09-27T17:50:00+08:00
 slug: "github-deploy-personal-blog"
-description: "把知识放进自己的仓库：Hugo + Git + GitHub + Cloudflare 的完整搭建思路，含 Hugo 目录结构速查、Cloudflare Workers 部署设置、GitHub Pages 自定义域名绑定顺序。"
+description: "把知识放进自己的仓库：Hugo + Git + GitHub + Cloudflare 的完整搭建思路，含 Hugo 目录结构速查、Cloudflare Workers 部署设置、GitHub Pages 与 Cloudflare Workers 自定义域名绑定流程。"
 tags: [
     "Hugo",
     "GitHub",
@@ -141,6 +141,49 @@ git submodule update --init --recursive && hugo --minify --gc ${HUGO_BASEURL:+--
 3. 末尾 `wrangler deploy` 成功，并给出 `https://xxxxxxxx.<子域>.workers.dev`。
 
 之后就是把域名发给 AI，让它确认就可以了。Cloudflare 的 workers 域名国内网络访问不了，可以自行使用自定义域名。
+
+## Cloudflare 自定义域名
+
+先有域名：想要便宜的域名，国内注册，6 个数字的 `.xyz` 域名，1 个月 7 块或者 8 块钱。
+
+### ① 域名侧前置（阿里云）
+
+- 确认域名**实名认证已通过**（未过会被 `SERVERHOLD`）。
+- 确认 **DNSSEC 未开启**。
+
+### ② CF 添加站点
+
+- [Add a site → 输入域名 → 选 Free](https://dash.cloudflare.com/)。
+
+![Cloudflare 控制台 Add a site](/img/blog-github-deploy/cf-add-site.png)
+
+- 扫记录时这域名是空的，直接继续 → **记下两个 NS**（形如 `xxx.ns.cloudflare.com`）。
+
+### ③ 阿里云改 NS
+
+- 域名 → `340304.xyz` → 管理 → **DNS 修改 / 修改 DNS 服务器** → 自定义 DNS → 填那两个 CF NS → 保存。
+- 等 CF 页面显示该站点 **Active**（通常几分钟 ~ 30 分钟）。自查：
+
+```
+Resolve-DnsName 340304.xyz -Type NS -Server 223.5.5.5
+```
+
+出现 `*.ns.cloudflare.com` 就说明改成功了。
+
+![CF 站点显示 Active](/img/blog-github-deploy/cf-ns-active.png)
+
+### ④ Worker 挂自定义域（等 Active 之后）
+
+- Workers & Pages → **`foreveryang`** → **Settings → Domains & Routes → Add → Custom Domain** → 填 **`blog.340304.xyz`** → Add domain。
+
+![Worker 添加 Custom Domain](/img/blog-github-deploy/cf-custom-domain.png)
+
+- CF 自动建 `blog` 的代理记录 + 自动签证书，**不要**在 DNS 里手建 CNAME。
+- 顺手可开 SSL/TLS → Edge Certificates → **Always Use HTTPS**（等价于 GitHub Pages 那边的 Enforce HTTPS）。
+
+![开启 Always Use HTTPS](/img/blog-github-deploy/cf-always-https.png)
+
+- `foreveryang.mythstraw.workers.dev` 保持可用（同页面可 Disable，建议留着兜底）。
 
 ## GitHub 怎么自定义域名
 
