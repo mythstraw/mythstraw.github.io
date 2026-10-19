@@ -67,6 +67,9 @@ description: "我在用的一些 AI 小工具，好用就放这儿。"
 * **[Revezone](https://revezone.com/index.html)** —— 一个轻量级、以本地为先、以图为中心的思维管理工具
 * **[Salt Player](https://moriafly.com/program/salt-player.html)** —— 本地音乐播放器
 * **[VTracer](https://www.visioncortex.org/vtracer/)** —— 矢量图形转换器，位图转矢量图
-* **[nanobot](https://nanobot.wiki/)** —— 港大开源的超轻量级AI助手
+* **[Nanobot](https://nanobot.wiki/)** —— 港大开源的超轻量级AI助手
+* **[Filee](https://filee.sh/zh-cn/)** ——免费文件转换器
+* **[Draw.io](https://www.drawio.com/)** —— 免费的图表绘制编辑器
+* **[Drawnix](https://drawnix.com/)** —— 白板工具
 
 </div>
