@@ -18,7 +18,7 @@ categories: [
 
 [Nanobot](https://nanobot.wiki/) —— nanobot 的官方 wiki 介绍。
 
-简单来说，nanobot 是一个香港大学开发的**超轻量级开源 AI agent**，核心代码仅约 4000 行。它是简化版本的 openclaw（小龙虾），砍掉了 openclaw 复杂的网关和多消息渠道，保留了 Agent 循环、MCP 双向能力与基础记忆。
+简单来说，nanobot 是一个香港大学开发的**超轻量级开源 AI agent**，核心代码仅约 70000 行。它是简化版本的 openclaw（小龙虾），砍掉了 openclaw 复杂的网关和多消息渠道，保留了 Agent 循环、MCP 能力与基础记忆。
 
 ## nanobot 的优点
 
@@ -28,14 +28,13 @@ nanobot 的优点主要在以下几个方面：
 - 配置简单
 - CLI 命令行、WebUI、多消息渠道（微信、QQ、飞书等都可以）、浏览器插件
 - skill 和 MCP
-- MCP 双向（既可以作为 MCP host 控制其他 MCP 服务，本身也可以作为 MCP 服务被其他 agent 调用）
 - 多实例功能，可以用不同的实例处理不同的任务
 
 ## 我的使用感受
 
 nanobot 作为日常的 AI 助手来说真的非常好用，安装配置操作都非常简单，该有的功能全都有：管理知识库、处理电脑问题、文件处理、远程控制电脑。而且网关可以静默后台开启，这样就可以全程使用手机来控制。
 
-因为 nanobot 支持 MCP 双向，可以和别的 agent 交互使用，如果搭配 DeepSeek Harness 会非常方便。
+但是 nanobot 也有它的不足，它的多 agent 协作不行，虽然可以创建多个不同的实例，但实例之间是互相独立的，不能协作。如果看重多 agent 协作，建议还是使用 DeepSeek Harness 会更好一些。
 
 ## nanobot 极简操作流程
 
@@ -225,3 +224,5 @@ nanobot agent -m "/pairing approve ABCD-EFGH"
 批准后重新发送消息，同时观察网关日志中的发送者 ID 和回复。
 
 > 📄 **延伸阅读**：[《nanobot 0.3.5 个人知识库自动部署指令》](/p/nanobot-deploy-instruction/) —— 把 nanobot 装成个人知识库助手的完整部署指令。
+
+> 📚 **推荐阅读**：[nanobot 深度解析：6 个月 4.5 万 Star 的开源 AI Agent 是如何炼成的 | 官小西](https://guancyxx.cn/zh/blog/nanobot-deep-dive) —— 想进一步了解 nanobot 内部实现的可以看看。
